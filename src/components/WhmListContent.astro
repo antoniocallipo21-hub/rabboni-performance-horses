@@ -11,6 +11,28 @@ interface Props {
 const { lang } = Astro.props;
 const t = useTranslations(lang);
 const listings = await getWhmListings(lang);
+
+// Le opzioni dei filtri si compongono solo dai valori presenti tra gli annunci attuali.
+// value = valore grezzo salvato nel data-attribute della card, label = testo mostrato nel menu.
+const uniqueSorted = (values: (string | undefined)[]) =>
+  [...new Set(values.filter((v): v is string => !!v))].sort().map((v) => ({ value: v, label: v }));
+
+const breeds = uniqueSorted(listings.map((e) => e.data.breed));
+const colors = uniqueSorted(listings.map((e) => e.data.color));
+const sexes = uniqueSorted(listings.map((e) => e.data.sex)).map((s) => ({
+  value: s.value,
+  label: s.label.charAt(0).toUpperCase() + s.label.slice(1),
+}));
+const years = [...new Set(listings.map((e) => e.data.year).filter((v): v is number => !!v))]
+  .sort((a, b) => b - a)
+  .map((y) => ({ value: String(y), label: String(y) }));
+
+const filters = [
+  { key: 'breed', label: 'Breed', options: breeds },
+  { key: 'color', label: 'Color', options: colors },
+  { key: 'sex', label: 'Sex', options: sexes },
+  { key: 'year', label: 'Year', options: years },
+].filter((f) => f.options.length > 0);
 ---
 
 <Hero lang={lang} title={t('whm.title')} eyebrow={t('whm.eyebrow')} />
@@ -18,18 +40,58 @@ const listings = await getWhmListings(lang);
 <section class="whm">
   <div class="container">
     {
-      listings.length > 0 ? (
-        <div class="grid">
-          {listings.map((entry, i) => (
-            <WhmCard entry={entry} lang={lang} delay={(i % 3) * 150} />
+      listings.length > 0 && filters.length > 0 && (
+        <div class="filters">
+          {filters.map((f) => (
+            <label class="filters__field">
+              <span class="filters__label">{f.label}</span>
+              <select class="filters__select" data-filter={f.key}>
+                <option value="">{t('whm.filters.all')}</option>
+                {f.options.map((opt) => (
+                  <option value={opt.value}>{opt.label}</option>
+                ))}
+              </select>
+            </label>
           ))}
         </div>
+      )
+    }
+    {
+      listings.length > 0 ? (
+        <>
+          <div class="grid">
+            {listings.map((entry, i) => (
+              <WhmCard entry={entry} lang={lang} delay={(i % 3) * 150} />
+            ))}
+          </div>
+          <p class="empty" data-no-results hidden>{t('whm.filters.noResults')}</p>
+        </>
       ) : (
         <p class="empty">{t('whm.empty')}</p>
       )
     }
   </div>
 </section>
+
+<script>
+  const selects = Array.from(document.querySelectorAll<HTMLSelectElement>('.filters__select'));
+  const cards = Array.from(document.querySelectorAll<HTMLElement>('.wcard'));
+  const noResults = document.querySelector<HTMLElement>('[data-no-results]');
+
+  if (selects.length > 0 && cards.length > 0) {
+    const applyFilters = () => {
+      const active = selects.filter((s) => s.value);
+      let visibleCount = 0;
+      cards.forEach((card) => {
+        const matches = active.every((s) => card.getAttribute(`data-${s.dataset.filter}`) === s.value);
+        card.style.display = matches ? '' : 'none';
+        if (matches) visibleCount++;
+      });
+      if (noResults) noResults.hidden = visibleCount > 0;
+    };
+    selects.forEach((s) => s.addEventListener('change', applyFilters));
+  }
+</script>
 
 <section class="sell">
   <div class="container sell__inner">
@@ -42,6 +104,40 @@ const listings = await getWhmListings(lang);
 <style>
   .whm {
     padding-block: clamp(3rem, 8vw, 6rem);
+  }
+  .filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1.25rem 1.75rem;
+    margin-bottom: clamp(2rem, 5vw, 3rem);
+    padding-bottom: clamp(2rem, 5vw, 3rem);
+    border-bottom: 1px solid #e6e2dc;
+  }
+  .filters__field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+  }
+  .filters__label {
+    color: var(--red);
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    font-size: 0.72rem;
+    font-weight: 600;
+  }
+  .filters__select {
+    min-width: 160px;
+    padding: 0.6rem 0.85rem;
+    border: 1px solid #d8d3ca;
+    border-radius: 4px;
+    background: #fff;
+    font-family: var(--font-body);
+    font-size: 0.95rem;
+    color: var(--ink);
+  }
+  .filters__select:focus {
+    outline: 2px solid var(--red);
+    outline-offset: 1px;
   }
   .grid {
     display: grid;

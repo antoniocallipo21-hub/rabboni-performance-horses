@@ -10,12 +10,20 @@ interface Props {
 
 const { entry, lang, delay = 0 } = Astro.props;
 const t = useTranslations(lang);
-const { name, year, color, breed, price, cover, coverAlt } = entry.data;
+const { name, year, sex, color, breed, price, cover, coverAlt } = entry.data;
 const href = whmPath(lang, whmSlug(entry));
 const meta = [year, color, breed].filter(Boolean).join(' ');
 ---
 
-<a class="wcard reveal" style={`--reveal-delay: ${delay}ms`} href={href}>
+<a
+  class="wcard reveal"
+  style={`--reveal-delay: ${delay}ms`}
+  href={href}
+  data-breed={breed ?? ''}
+  data-color={color ?? ''}
+  data-sex={sex ?? ''}
+  data-year={year ?? ''}
+>
   <span class="wcard__photo">
     <img src={cover} alt={coverAlt ?? ''} loading="lazy" />
     <span class="wcard__price">{price || t('whm.priceOnRequest')}</span>
