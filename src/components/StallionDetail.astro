@@ -15,7 +15,7 @@ const { entry, lang } = Astro.props;
 const t = useTranslations(lang);
 const d = entry.data;
 const {
-  name, nickname, year, deathYear, color, registry, height,
+  name, nickname, year, color, registry, height,
   earnings, lte, titles,
   sireBio, damBio,
   fee, geneticStatus, semenAvailability, breedingLinks, foalsEligible, video,
@@ -25,7 +25,8 @@ const {
 const cardPhoto = cardCover ?? cover;
 const cardPhotoAlt = cardCoverAlt ?? coverAlt;
 
-const years = deathYear ? `${year} – ${deathYear}` : String(year ?? '');
+// Per ora non mostriamo l'anno di morte nel passaporto, solo l'anno di nascita.
+const years = String(year ?? '');
 // Hero: anno di nascita, colore e "Stallion" sempre in inglese, anche nella pagina italiana
 // (è una dicitura da settore internazionale del reining, non tradotta), senza range di anni né pedigree.
 const heroEyebrow = [year, color, 'Stallion'].filter(Boolean).join(' ');
