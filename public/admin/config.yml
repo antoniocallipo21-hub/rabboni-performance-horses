@@ -1,14 +1,33 @@
 # Config di Decap CMS per Rabboni Performance Horses.
-#
-# La sezione "backend" qui sotto è un segnaposto: dopo aver creato il sito su
-# DecapBridge (decapbridge.com) e collegato questo repository, sostituiscila
-# con lo snippet esatto che DecapBridge genera per questo sito.
+
+# Autenticazione DecapBridge PKCE (generata da DecapBridge per questo sito).
 backend:
-  name: github
+  name: git-gateway
   repo: antoniocallipo21-hub/rabboni-performance-horses
   branch: main
-  base_url: https://api.decapbridge.com
-  auth_endpoint: auth
+  auth_type: pkce
+  base_url: https://auth.decapbridge.com
+  auth_endpoint: /sites/36bd3fc4-264d-48c6-aeb6-6ebddc3fd36a/pkce
+  auth_token_endpoint: /sites/36bd3fc4-264d-48c6-aeb6-6ebddc3fd36a/token
+  gateway_url: https://gateway.decapbridge.com
+
+  # Chi ha fatto cosa
+  commit_messages:
+    create: Create {{collection}} “{{slug}}” - {{author-name}} <{{author-login}}> via DecapBridge
+    update: Update {{collection}} “{{slug}}” - {{author-name}} <{{author-login}}> via DecapBridge
+    delete: Delete {{collection}} “{{slug}}” - {{author-name}} <{{author-login}}> via DecapBridge
+    uploadMedia: Upload “{{path}}” - {{author-name}} <{{author-login}}> via DecapBridge
+    deleteMedia: Delete “{{path}}” - {{author-name}} <{{author-login}}> via DecapBridge
+    openAuthoring: Message {{message}} - {{author-name}} <{{author-login}}> via DecapBridge
+
+auth:
+  email_claim: email
+  first_name_claim: first_name
+  last_name_claim: last_name
+  avatar_url_claim: avatar_url
+
+logo_url: https://decapbridge.com/decapcms-with-bridge.svg
+site_url: https://rabboni-performance-horses.vercel.app
 
 # Le foto caricate dal CMS vanno in public/uploads e sono servite da /uploads/...
 media_folder: "public/uploads"
