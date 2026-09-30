@@ -1,0 +1,101 @@
+---
+import Hero from './Hero.astro';
+import WhmCard from './WhmCard.astro';
+import { getWhmListings } from '../lib/whm';
+import { useTranslations, localePath, type Lang } from '../i18n/ui';
+
+interface Props {
+  lang: Lang;
+}
+
+const { lang } = Astro.props;
+const t = useTranslations(lang);
+const listings = await getWhmListings(lang);
+---
+
+<Hero lang={lang} title={t('whm.title')} eyebrow={t('whm.eyebrow')} />
+
+<section class="whm">
+  <div class="container">
+    {
+      listings.length > 0 ? (
+        <div class="grid">
+          {listings.map((entry, i) => (
+            <WhmCard entry={entry} lang={lang} delay={(i % 3) * 150} />
+          ))}
+        </div>
+      ) : (
+        <p class="empty">{t('whm.empty')}</p>
+      )
+    }
+  </div>
+</section>
+
+<section class="sell">
+  <div class="container sell__inner">
+    <h2 class="sell__title">{t('whm.sell.title')}</h2>
+    <p class="sell__text">{t('whm.sell.text')}</p>
+    <a class="sell__cta" href={localePath(lang, '/contatti')}>{t('whm.sell.cta')}</a>
+  </div>
+</section>
+
+<style>
+  .whm {
+    padding-block: clamp(3rem, 8vw, 6rem);
+  }
+  .grid {
+    display: grid;
+    gap: clamp(1.25rem, 2.4vw, 1.8rem);
+    grid-template-columns: repeat(3, 1fr);
+  }
+  @media (max-width: 960px) {
+    .grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+  @media (max-width: 640px) {
+    .grid {
+      grid-template-columns: 1fr;
+    }
+  }
+  .empty {
+    text-align: center;
+    color: var(--gray);
+    font-size: 1.1rem;
+  }
+
+  .sell {
+    padding-block: clamp(3rem, 8vw, 6rem);
+    background: var(--sand);
+  }
+  .sell__inner {
+    max-width: 640px;
+    text-align: center;
+  }
+  .sell__title {
+    margin: 0 0 1rem;
+    font-family: var(--font-display);
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+    font-weight: 500;
+    font-size: clamp(1.5rem, 3vw, 2rem);
+  }
+  .sell__text {
+    margin: 0 0 1.75rem;
+    color: var(--gray);
+    font-size: 1.02rem;
+    line-height: 1.6;
+  }
+  .sell__cta {
+    display: inline-block;
+    padding: 0.85rem 2rem;
+    background: var(--red);
+    color: #fff;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    transition: background 0.2s;
+  }
+  .sell__cta:hover {
+    background: var(--red-dark);
+  }
+</style>

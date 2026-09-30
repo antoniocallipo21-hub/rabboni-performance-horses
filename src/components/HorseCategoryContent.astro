@@ -1,0 +1,61 @@
+---
+import Hero from './Hero.astro';
+import HorseCard from './HorseCard.astro';
+import { horseCategories, type HorseCategorySlug } from '../data/horseCategories';
+import { getHorses } from '../lib/horses';
+import { useTranslations, type Lang } from '../i18n/ui';
+
+interface Props {
+  lang: Lang;
+  category: HorseCategorySlug;
+}
+
+const { lang, category } = Astro.props;
+const t = useTranslations(lang);
+const horses = await getHorses(lang, category);
+const currentLabel = horseCategories.find((c) => c.slug === category)!.navKey;
+---
+
+<Hero lang={lang} title={t(currentLabel as any)} eyebrow={t('nav.horses')} />
+
+<section class="horses">
+  <div class="container">
+    {
+      horses.length > 0 ? (
+        <div class="grid">
+          {horses.map((entry, i) => (
+            <HorseCard entry={entry} lang={lang} delay={(i % 3) * 150} />
+          ))}
+        </div>
+      ) : (
+        <p class="empty">{t('horses.empty')}</p>
+      )
+    }
+  </div>
+</section>
+
+<style>
+  .horses {
+    padding-block: clamp(3rem, 8vw, 6rem);
+  }
+  .grid {
+    display: grid;
+    gap: clamp(1.25rem, 2.4vw, 1.8rem);
+    grid-template-columns: repeat(3, 1fr);
+  }
+  @media (max-width: 960px) {
+    .grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+  @media (max-width: 640px) {
+    .grid {
+      grid-template-columns: 1fr;
+    }
+  }
+  .empty {
+    text-align: center;
+    color: var(--gray);
+    font-size: 1.1rem;
+  }
+</style>

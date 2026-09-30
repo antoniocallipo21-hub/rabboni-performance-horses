@@ -1,0 +1,126 @@
+---
+interface Props {
+  sire?: string;
+  dam?: string;
+  sireSire?: string;
+  sireDam?: string;
+  damSire?: string;
+  damDam?: string;
+  sireSireSire?: string;
+  sireSireDam?: string;
+  sireDamSire?: string;
+  sireDamDam?: string;
+  damSireSire?: string;
+  damSireDam?: string;
+  damDamSire?: string;
+  damDamDam?: string;
+}
+
+const d = Astro.props;
+
+// Albero genealogico su 3 generazioni: genitori (2), nonni (4), bisnonni (8).
+// Ogni riga della generazione più giovane occupa 1 "unità" di altezza; le generazioni
+// precedenti occupano lo spazio dei loro discendenti (grid-row-end: span N).
+const gen1 = [
+  { name: d.sire, span: 4 },
+  { name: d.dam, span: 4 },
+];
+const gen2 = [
+  { name: d.sireSire, span: 2 },
+  { name: d.sireDam, span: 2 },
+  { name: d.damSire, span: 2 },
+  { name: d.damDam, span: 2 },
+];
+const gen3 = [
+  { name: d.sireSireSire, span: 1 },
+  { name: d.sireSireDam, span: 1 },
+  { name: d.sireDamSire, span: 1 },
+  { name: d.sireDamDam, span: 1 },
+  { name: d.damSireSire, span: 1 },
+  { name: d.damSireDam, span: 1 },
+  { name: d.damDamSire, span: 1 },
+  { name: d.damDamDam, span: 1 },
+];
+
+const hasPedigree = [...gen1, ...gen2, ...gen3].some((b) => b.name);
+
+function rows(boxes: { span: number }[]) {
+  let row = 1;
+  return boxes.map((b) => {
+    const start = row;
+    row += b.span;
+    return `${start} / ${row}`;
+  });
+}
+const rows1 = rows(gen1);
+const rows2 = rows(gen2);
+const rows3 = rows(gen3);
+---
+
+{
+  hasPedigree && (
+    <section class="pedigree">
+      <div class="container">
+        <div class="tree">
+          {gen1.map((b, i) => (
+            <div class="box box--gen1" style={`grid-row: ${rows1[i]}; grid-column: 1;`}>
+              <span>{b.name || '—'}</span>
+            </div>
+          ))}
+          {gen2.map((b, i) => (
+            <div class="box box--gen2" style={`grid-row: ${rows2[i]}; grid-column: 2;`}>
+              <span>{b.name || '—'}</span>
+            </div>
+          ))}
+          {gen3.map((b, i) => (
+            <div class="box box--gen3" style={`grid-row: ${rows3[i]}; grid-column: 3;`}>
+              <span>{b.name || '—'}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  )
+}
+
+<style>
+  .pedigree {
+    padding-block: clamp(3rem, 8vw, 6rem);
+    background: var(--sand);
+  }
+  .tree {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 0.5rem;
+  }
+  .box {
+    display: flex;
+    align-items: center;
+    padding: 0.55rem 0.9rem;
+    background: #fff;
+    border-left: 3px solid var(--red);
+    font-size: 0.92rem;
+    line-height: 1.3;
+  }
+  .box--gen1 {
+    font-weight: 600;
+    font-size: 1.02rem;
+  }
+  .box--gen3 {
+    font-size: 0.82rem;
+    color: var(--gray);
+  }
+  @media (max-width: 720px) {
+    .tree {
+      grid-template-columns: 1fr;
+      gap: 0.4rem;
+    }
+    .box,
+    .box--gen1,
+    .box--gen2,
+    .box--gen3 {
+      grid-column: 1 !important;
+      grid-row: auto !important;
+    }
+  }
+</style>

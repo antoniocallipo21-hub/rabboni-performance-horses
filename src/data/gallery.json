@@ -1,0 +1,46 @@
+{
+  "photos": [
+    {
+      "image": "/uploads/gallery-fattrice-puledro.jpg",
+      "width": 911,
+      "height": 1215,
+      "caption_it": "Fattrice e puledro al pascolo",
+      "caption_en": "Mare and foal in the paddock"
+    },
+    {
+      "image": "/uploads/gallery-sliding-stop.jpg",
+      "width": 805,
+      "height": 1074,
+      "caption_it": "Sliding stop in gara",
+      "caption_en": "Sliding stop in competition"
+    },
+    {
+      "image": "/uploads/gallery-struttura-aerea.jpg",
+      "width": 800,
+      "height": 450,
+      "caption_it": "La nostra struttura vista dall’alto",
+      "caption_en": "Our facility from above"
+    },
+    {
+      "image": "/uploads/gallery-cavallo-sellato.jpg",
+      "width": 566,
+      "height": 755,
+      "caption_it": "Cavallo pronto per il lavoro",
+      "caption_en": "Horse ready for work"
+    },
+    {
+      "image": "/uploads/gallery-addestramento.jpg",
+      "width": 1023,
+      "height": 1364,
+      "caption_it": "Un momento di addestramento",
+      "caption_en": "A training moment"
+    },
+    {
+      "image": "/uploads/gallery-selleria.jpg",
+      "width": 1080,
+      "height": 721,
+      "caption_it": "La selleria",
+      "caption_en": "The tack room"
+    }
+  ]
+}

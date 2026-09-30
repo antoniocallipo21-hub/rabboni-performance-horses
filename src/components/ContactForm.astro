@@ -1,0 +1,256 @@
+---
+import { contacts } from '../data/contacts';
+import { useTranslations, localePath, type Lang } from '../i18n/ui';
+
+interface Props {
+  lang: Lang;
+}
+
+const { lang } = Astro.props;
+const t = useTranslations(lang);
+const accessKey = import.meta.env.PUBLIC_WEB3FORMS_KEY ?? '';
+---
+
+<section class="form-section">
+  <div class="container form-section__inner">
+    <div class="form-section__head">
+      <h2 class="form-section__title">{t('form.title')}</h2>
+      <p class="form-section__intro">{t('form.intro')}</p>
+    </div>
+
+    <form
+      class="form"
+      method="post"
+      data-access-key={accessKey}
+      data-sending={t('form.sending')}
+      data-send={t('form.send')}
+      data-success={t('form.success')}
+      data-error={t('form.error')}
+      data-notconfigured={t('form.notconfigured')}
+      data-email={contacts.email}
+      novalidate
+    >
+      <div class="form__row">
+        <label class="form__field">
+          <span>{t('form.name')}</span>
+          <input type="text" name="name" autocomplete="name" required />
+        </label>
+        <label class="form__field">
+          <span>{t('form.email')}</span>
+          <input type="email" name="email" autocomplete="email" required />
+        </label>
+      </div>
+
+      <label class="form__field">
+        <span>{t('form.phone')}</span>
+        <input type="tel" name="phone" autocomplete="tel" />
+      </label>
+
+      <label class="form__field">
+        <span>{t('form.message')}</span>
+        <textarea name="message" rows="6" required></textarea>
+      </label>
+
+      <!-- Campo trappola anti-spam: gli utenti non lo vedono -->
+      <input type="checkbox" name="botcheck" class="form__trap" tabindex="-1" autocomplete="off" aria-hidden="true" />
+
+      <label class="form__consent">
+        <input type="checkbox" name="consent" required />
+        <span>
+          {t('form.consent.pre')}<a href={localePath(lang, '/privacy-policy')} target="_blank" rel="noopener">Privacy Policy</a>{t('form.consent.post')}
+        </span>
+      </label>
+
+      <div class="form__actions">
+        <button type="submit" class="form__submit">{t('form.send')}</button>
+        <p class="form__status" role="status" aria-live="polite"></p>
+      </div>
+    </form>
+  </div>
+</section>
+
+<script>
+  const form = document.querySelector<HTMLFormElement>('.form');
+  if (form) {
+    const status = form.querySelector<HTMLElement>('.form__status')!;
+    const button = form.querySelector<HTMLButtonElement>('.form__submit')!;
+    const d = form.dataset;
+
+    const setStatus = (text: string, kind: 'ok' | 'error' | '') => {
+      status.textContent = text;
+      status.dataset.kind = kind;
+    };
+
+    form.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      setStatus('', '');
+
+      if (!form.checkValidity()) {
+        form.reportValidity();
+        return;
+      }
+      if (!d.accessKey) {
+        setStatus(`${d.notconfigured} ${d.email}`, 'error');
+        return;
+      }
+
+      const data = Object.fromEntries(new FormData(form).entries());
+      button.disabled = true;
+      button.textContent = d.sending ?? '';
+
+      try {
+        const response = await fetch('https://api.web3forms.com/submit', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+          signal: AbortSignal.timeout(15000),
+          body: JSON.stringify({
+            ...data,
+            access_key: d.accessKey,
+            subject: 'Nuovo messaggio dal sito Rabboni Performance Horses',
+            from_name: 'Sito Rabboni',
+          }),
+        });
+        const result = await response.json();
+        if (result.success) {
+          form.reset();
+          setStatus(d.success ?? '', 'ok');
+        } else {
+          setStatus(`${d.error} ${d.email}`, 'error');
+        }
+      } catch {
+        setStatus(`${d.error} ${d.email}`, 'error');
+      } finally {
+        button.disabled = false;
+        button.textContent = d.send ?? '';
+      }
+    });
+  }
+</script>
+
+<style>
+  .form-section {
+    padding-block: clamp(3rem, 8vw, 6rem);
+    background: var(--sand);
+  }
+  .form-section__inner {
+    display: grid;
+    gap: clamp(2rem, 6vw, 5rem);
+  }
+  .form-section__title {
+    margin: 0 0 1rem;
+    font-family: var(--font-display);
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+    font-weight: 500;
+    font-size: clamp(1.9rem, 4vw, 3rem);
+    line-height: 1.15;
+  }
+  .form-section__intro {
+    margin: 0;
+    color: var(--gray);
+    font-size: 1.05rem;
+    max-width: 36ch;
+  }
+  .form {
+    display: grid;
+    gap: 1.25rem;
+  }
+  .form__row {
+    display: grid;
+    gap: 1.25rem;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  }
+  .form__field {
+    display: grid;
+    gap: 0.4rem;
+  }
+  .form__field span {
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--gray);
+  }
+  .form input[type='text'],
+  .form input[type='email'],
+  .form input[type='tel'],
+  .form textarea {
+    width: 100%;
+    padding: 0.85rem 1rem;
+    border: 1px solid #d7d3cd;
+    border-radius: 0;
+    background: #fff;
+    font: inherit;
+    color: var(--ink);
+  }
+  .form textarea {
+    resize: vertical;
+  }
+  .form input:focus-visible,
+  .form textarea:focus-visible {
+    outline: 2px solid var(--red);
+    outline-offset: 1px;
+    border-color: var(--red);
+  }
+  .form__trap {
+    position: absolute;
+    left: -9999px;
+    opacity: 0;
+  }
+  .form__consent {
+    display: flex;
+    gap: 0.7rem;
+    align-items: flex-start;
+    font-size: 0.9rem;
+    color: var(--gray);
+  }
+  .form__consent input {
+    margin-top: 0.3rem;
+    accent-color: var(--red);
+  }
+  .form__consent a {
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+  .form__actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 1rem 1.5rem;
+  }
+  .form__submit {
+    padding: 0.95rem 2.2rem;
+    border: 0;
+    background: var(--red);
+    color: #fff;
+    font: inherit;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+  .form__submit:hover {
+    background: var(--red-dark);
+  }
+  .form__submit:disabled {
+    opacity: 0.6;
+    cursor: wait;
+  }
+  .form__status {
+    margin: 0;
+    font-size: 0.95rem;
+  }
+  .form__status[data-kind='ok'] {
+    color: #1f7a3a;
+  }
+  .form__status[data-kind='error'] {
+    color: var(--red-dark);
+  }
+
+  @media (min-width: 900px) {
+    .form-section__inner {
+      grid-template-columns: 1fr 1.4fr;
+      align-items: start;
+    }
+  }
+</style>

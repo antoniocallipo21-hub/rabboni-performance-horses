@@ -1,0 +1,16 @@
+---
+import Layout from '../../../layouts/Layout.astro';
+import WhmDetail from '../../../components/WhmDetail.astro';
+import { getWhmListings, whmSlug } from '../../../lib/whm';
+
+export async function getStaticPaths() {
+  const listings = await getWhmListings('en');
+  return listings.map((entry) => ({ params: { slug: whmSlug(entry) }, props: { entry } }));
+}
+
+const { entry } = Astro.props;
+---
+
+<Layout title={`${entry.data.name} | Western Horse Market | Rabboni Performance Horses`} description={entry.data.excerpt}>
+  <WhmDetail entry={entry} lang="en" />
+</Layout>

@@ -1,0 +1,132 @@
+---
+import Hero from './Hero.astro';
+import NewsCard from './NewsCard.astro';
+import { getNews } from '../lib/news';
+import { useTranslations, type Lang } from '../i18n/ui';
+
+interface Props {
+  lang: Lang;
+}
+
+const { lang } = Astro.props;
+const t = useTranslations(lang);
+const all = await getNews(lang);
+const [featured, ...others] = all;
+const categories = (['gare', 'allevamento', 'eventi'] as const).filter((c) => all.some((e) => e.data.category === c));
+---
+
+<Hero lang={lang} title={t('news.title')} eyebrow={t('news.eyebrow')} />
+
+<section class="news" data-nomatch={t('news.nomatch')}>
+  <div class="container">
+    {
+      featured ? (
+        <>
+          {categories.length > 1 && (
+            <div class="filters" role="group" aria-label={t('news.filters')}>
+              <button type="button" class="filters__btn is-active" data-filter="all">{t('news.all')}</button>
+              {categories.map((c) => (
+                <button type="button" class="filters__btn" data-filter={c}>{t(`cat.${c}` as const)}</button>
+              ))}
+            </div>
+          )}
+          <NewsCard entry={featured} lang={lang} featured />
+          <div class="news__grid">
+            <NewsCard entry={featured} lang={lang} dupe />
+            {others.map((entry, i) => (
+              <NewsCard entry={entry} lang={lang} delay={i % 3 * 180} />
+            ))}
+          </div>
+          <p class="news__empty news__nomatch" hidden>{t('news.nomatch')}</p>
+        </>
+      ) : (
+        <p class="news__empty">{t('news.empty')}</p>
+      )
+    }
+  </div>
+</section>
+
+<script>
+  const section = document.querySelector<HTMLElement>('.news');
+  if (section) {
+    const buttons = Array.from(section.querySelectorAll<HTMLButtonElement>('.filters__btn'));
+    const featured = section.querySelector<HTMLElement>('.card[data-featured]');
+    const grid = section.querySelector<HTMLElement>('.news__grid');
+    const cards = Array.from(section.querySelectorAll<HTMLElement>('.news__grid .card'));
+    const nomatch = section.querySelector<HTMLElement>('.news__nomatch');
+
+    buttons.forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const value = btn.dataset.filter ?? 'all';
+        buttons.forEach((b) => b.classList.toggle('is-active', b === btn));
+        const all = value === 'all';
+
+        // Senza filtro: notizia in evidenza + griglia. Con filtro: solo griglia con le notizie della categoria.
+        if (featured) featured.hidden = !all;
+        grid?.classList.toggle('news__grid--filtered', !all);
+        let shown = 0;
+        cards.forEach((card) => {
+          const isDupe = card.hasAttribute('data-dupe');
+          const match = all ? !isDupe : card.dataset.category === value;
+          card.hidden = !match;
+          // le schede mostrate dopo un filtro non devono aspettare l'animazione di scroll
+          if (match) card.classList.add('is-visible');
+          if (match) shown++;
+        });
+        if (nomatch) nomatch.hidden = shown > 0;
+      });
+    });
+  }
+</script>
+
+<style>
+  .news {
+    padding-block: clamp(3rem, 8vw, 6rem);
+  }
+  .news__grid {
+    display: grid;
+    gap: clamp(2rem, 4vw, 3rem) clamp(1.5rem, 3vw, 2.5rem);
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 320px), 1fr));
+    margin-top: clamp(3rem, 7vw, 5.5rem);
+    padding-top: clamp(3rem, 7vw, 5.5rem);
+    border-top: 1px solid #e6e2dc;
+  }
+  .filters {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.6rem;
+    margin-bottom: clamp(2rem, 5vw, 3.5rem);
+  }
+  .filters__btn {
+    padding: 0.55rem 1.4rem;
+    border: 1px solid #cfcac2;
+    background: transparent;
+    font-family: var(--font-nav);
+    font-size: 0.95rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ink);
+    cursor: pointer;
+    transition: background 0.2s, color 0.2s, border-color 0.2s;
+  }
+  .filters__btn:hover {
+    border-color: var(--red);
+    color: var(--red);
+  }
+  .filters__btn.is-active {
+    background: var(--red);
+    border-color: var(--red);
+    color: #fff;
+  }
+  .news__grid--filtered {
+    margin-top: 0;
+    padding-top: 0;
+    border-top: 0;
+  }
+  .news__empty {
+    text-align: center;
+    color: var(--gray);
+    font-size: 1.1rem;
+  }
+</style>

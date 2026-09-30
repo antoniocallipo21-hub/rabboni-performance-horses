@@ -1,0 +1,96 @@
+---
+import { horsePath, horseSlug, type HorseEntry } from '../lib/horses';
+import type { Lang } from '../i18n/ui';
+
+interface Props {
+  entry: HorseEntry;
+  lang: Lang;
+  delay?: number;
+}
+
+const { entry, lang, delay = 0 } = Astro.props;
+const { name, year, sex, sire, dam, color, cover, coverAlt, category } = entry.data;
+const href = horsePath(lang, category, horseSlug(entry));
+
+// Nelle fattrici il sesso è scontato: lo mostriamo solo nelle altre categorie.
+const sexLabel = category !== 'broodmares' && sex && sex.charAt(0).toUpperCase() + sex.slice(1);
+const meta = [year, color, sexLabel].filter(Boolean).join(' ');
+const pedigree = sire && dam ? `${sire} × ${dam}` : sire || dam;
+---
+
+<a class="card reveal" style={`--reveal-delay: ${delay}ms`} href={href}>
+  <span class="card__photo">
+    <img src={cover} alt={coverAlt ?? ''} loading="lazy" />
+  </span>
+  <span class="card__body">
+    {meta && <span class="card__meta">{meta}</span>}
+    <span class="card__name">{name}</span>
+    {pedigree && <span class="card__ped" title={pedigree}>{pedigree}</span>}
+  </span>
+</a>
+
+<style>
+  .card {
+    position: relative;
+    display: block;
+    overflow: hidden;
+    border-radius: 6px;
+    border: 1px solid #26221d;
+    background: var(--ink);
+    transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.35s;
+  }
+  .card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 24px 44px rgba(0, 0, 0, 0.28);
+  }
+  .card__photo {
+    display: block;
+    aspect-ratio: 3 / 2;
+    overflow: hidden;
+    background: var(--sand);
+  }
+  .card__photo img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: 50% 20%;
+    transition: transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .card:hover .card__photo img {
+    transform: scale(1.045);
+  }
+  .card__body {
+    display: block;
+    padding: 1.15rem 1.1rem 1.3rem;
+    text-align: center;
+  }
+  .card__meta {
+    display: block;
+    font-family: var(--font-nav);
+    font-size: 0.68rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--red);
+  }
+  .card__name {
+    display: block;
+    margin-top: 0.5rem;
+    font-family: var(--font-display);
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+    font-weight: 500;
+    font-size: 1.35rem;
+    line-height: 1.15;
+    color: #fff;
+  }
+  .card__ped {
+    display: block;
+    margin-top: 0.5rem;
+    font-size: 0.85rem;
+    color: rgba(255, 255, 255, 0.6);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+</style>

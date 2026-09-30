@@ -1,0 +1,85 @@
+---
+import bandPhoto from '../assets/hero-bridles.jpg';
+
+interface Props {
+  title?: string;
+  text: string;
+  buttonLabel: string;
+  buttonHref: string;
+  photo?: ImageMetadata;
+}
+
+const { title, text, buttonLabel, buttonHref, photo = bandPhoto } = Astro.props;
+---
+
+<section class="band" style={`--band-photo: url(${photo.src})`}>
+  <div class="container band__inner">
+    {title && <h2 class="band__title reveal">{title}</h2>}
+    <p class="band__text reveal" style="--reveal-delay: 200ms">{text}</p>
+    <div class="reveal" style="--reveal-delay: 400ms">
+      <a class="band__cta" href={buttonHref}>{buttonLabel}</a>
+    </div>
+  </div>
+</section>
+
+<style>
+  /* Fascia finale: rosso trasparente sopra una foto, con il bordo alto che si sfalda come polvere */
+  .band {
+    --dust-h: 340px;
+    position: relative;
+    isolation: isolate;
+    margin-top: -60px;
+    padding-block: calc(var(--dust-h) + 10px) clamp(4rem, 9vw, 7rem);
+    color: #fff;
+    text-align: center;
+  }
+  .band::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background:
+      linear-gradient(rgba(214, 22, 30, 0.82), rgba(214, 22, 30, 0.82)),
+      var(--band-photo) center / cover;
+    /* in alto la polvere, sotto una base piena */
+    /* dissolvenza morbida (curva smoothstep) + polvere di granelli, poi rosso pieno */
+    -webkit-mask:
+      url('/dust-mask.svg') 50% 0 / 1600px var(--dust-h) repeat-x,
+      linear-gradient(to bottom, rgba(0,0,0,0) 0%, rgba(0,0,0,0.028) 10%, rgba(0,0,0,0.104) 20%, rgba(0,0,0,0.216) 30%, rgba(0,0,0,0.352) 40%, rgba(0,0,0,0.5) 50%, rgba(0,0,0,0.648) 60%, rgba(0,0,0,0.784) 70%, rgba(0,0,0,0.896) 80%, rgba(0,0,0,0.972) 90%, #000 100%) 0 0 / 100% var(--dust-h) no-repeat,
+      linear-gradient(#000, #000) 0 calc(var(--dust-h) - 1px) / 100% 100% no-repeat;
+    mask:
+      url('/dust-mask.svg') 50% 0 / 1600px var(--dust-h) repeat-x,
+      linear-gradient(to bottom, rgba(0,0,0,0) 0%, rgba(0,0,0,0.028) 10%, rgba(0,0,0,0.104) 20%, rgba(0,0,0,0.216) 30%, rgba(0,0,0,0.352) 40%, rgba(0,0,0,0.5) 50%, rgba(0,0,0,0.648) 60%, rgba(0,0,0,0.784) 70%, rgba(0,0,0,0.896) 80%, rgba(0,0,0,0.972) 90%, #000 100%) 0 0 / 100% var(--dust-h) no-repeat,
+      linear-gradient(#000, #000) 0 calc(var(--dust-h) - 1px) / 100% 100% no-repeat;
+  }
+  .band__inner {
+    max-width: 760px;
+  }
+  .band__title {
+    margin: 0 0 1rem;
+    font-family: var(--font-display);
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+    font-weight: 500;
+    font-size: clamp(1.9rem, 4.5vw, 3.2rem);
+    line-height: 1.15;
+  }
+  .band__text {
+    margin: 0 0 2rem;
+    color: rgba(255, 255, 255, 0.9);
+    font-size: 1.05rem;
+  }
+  .band__cta {
+    display: inline-block;
+    padding: 0.9rem 2.2rem;
+    background: #fff;
+    color: var(--red-dark);
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    transition: background 0.2s, color 0.2s;
+  }
+  .band__cta:hover {
+    background: var(--ink);
+    color: #fff;
+  }
+</style>

@@ -1,0 +1,142 @@
+---
+import Hero from './Hero.astro';
+import HorseCard from './HorseCard.astro';
+import HorsePedigree from './HorsePedigree.astro';
+import HorseGallery from './HorseGallery.astro';
+import CtaBand from './CtaBand.astro';
+import { getHorses, type HorseEntry } from '../lib/horses';
+import { useTranslations, localePath, type Lang } from '../i18n/ui';
+
+interface Props {
+  entry: HorseEntry;
+  lang: Lang;
+}
+
+const { entry, lang } = Astro.props;
+const t = useTranslations(lang);
+const { name, breed, year, sex, sire, dam, color, cover, coverAlt, category, gallery } = entry.data;
+
+// Il passaporto (ed eyebrow dell'hero) usa le diciture inglesi standard del settore,
+// anche nella pagina italiana (stesso criterio della pagina stalloni).
+const sexLabel = sex && sex.charAt(0).toUpperCase() + sex.slice(1);
+const heroEyebrow = [year, color, sexLabel].filter(Boolean).join(' ');
+const pedigreeLine = sire && dam ? `${sire} × ${dam}` : sire || dam;
+
+const related = (await getHorses(lang, category)).filter((e) => e.id !== entry.id).slice(0, 3);
+---
+
+<Hero lang={lang} title={name} eyebrow={heroEyebrow} subtitle={pedigreeLine} imageUrl={cover} alt={coverAlt ?? ''} />
+
+<article class="detail">
+  <div class="container detail__inner">
+    <dl class="facts">
+      {breed && (
+        <div class="facts__item">
+          <dt>Breed</dt>
+          <dd>{breed}</dd>
+        </div>
+      )}
+      {year && (
+        <div class="facts__item">
+          <dt>Year of birth</dt>
+          <dd>{year}</dd>
+        </div>
+      )}
+      {sexLabel && (
+        <div class="facts__item">
+          <dt>Sex</dt>
+          <dd>{sexLabel}</dd>
+        </div>
+      )}
+      {color && (
+        <div class="facts__item">
+          <dt>Color</dt>
+          <dd>{color}</dd>
+        </div>
+      )}
+    </dl>
+  </div>
+</article>
+
+<HorsePedigree entry={entry} lang={lang} />
+
+<HorseGallery images={gallery ?? []} name={name} lang={lang} />
+
+{
+  related.length > 0 && (
+    <section class="related">
+      <div class="container">
+        <h2 class="related__title reveal">{t('horses.related')}</h2>
+        <div class="related__grid">
+          {related.map((e, i) => (
+            <HorseCard entry={e} lang={lang} delay={i * 180} />
+          ))}
+        </div>
+      </div>
+    </section>
+  )
+}
+
+<CtaBand
+  text={t('horses.cta.text')}
+  buttonLabel={t('aboutpage.cta.button')}
+  buttonHref={localePath(lang, '/contatti')}
+/>
+
+<style>
+  .detail {
+    padding-block: clamp(3rem, 8vw, 6rem) 0;
+  }
+  .detail__inner {
+    max-width: 760px;
+  }
+  .facts {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 1.5rem;
+    margin: 0 0 clamp(2rem, 5vw, 3rem);
+    padding-bottom: clamp(2rem, 5vw, 3rem);
+    border-bottom: 1px solid #e6e2dc;
+  }
+  .facts__item dt {
+    margin-bottom: 0.35rem;
+    color: var(--red);
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    font-size: 0.72rem;
+    font-weight: 600;
+  }
+  .facts__item dd {
+    margin: 0;
+    font-size: 1.15rem;
+  }
+
+  .related {
+    padding-block: clamp(3rem, 8vw, 6rem);
+    background: var(--sand);
+  }
+  .related__title {
+    margin: 0 0 clamp(2rem, 5vw, 3rem);
+    font-family: var(--font-display);
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+    font-weight: 500;
+    font-size: clamp(1.9rem, 4vw, 3rem);
+    text-align: center;
+  }
+  .related__grid {
+    display: grid;
+    gap: clamp(1.25rem, 2.4vw, 1.8rem);
+    grid-template-columns: repeat(3, 1fr);
+  }
+  @media (max-width: 960px) {
+    .related__grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+  @media (max-width: 640px) {
+    .related__grid {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

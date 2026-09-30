@@ -1,0 +1,77 @@
+---
+import Hero from './Hero.astro';
+import Split from './Split.astro';
+import CtaBand from './CtaBand.astro';
+import breedingPhoto from '../assets/pillar-breeding.jpg';
+import trainingPhoto from '../assets/pillar-training.jpg';
+import { useTranslations, localePath, type Lang } from '../i18n/ui';
+
+interface Props {
+  lang: Lang;
+}
+
+const { lang } = Astro.props;
+const t = useTranslations(lang);
+---
+
+<Hero lang={lang} title={t('aboutpage.title')} eyebrow="Rabboni Performance Horses" />
+
+<section class="intro">
+  <div class="container intro__inner">
+    <p class="intro__eyebrow reveal">{t('aboutpage.intro.eyebrow')}</p>
+    <p class="intro__text reveal" style="--reveal-delay: 200ms">{t('aboutpage.intro.text')}</p>
+  </div>
+</section>
+
+<Split
+  eyebrow={t('aboutpage.s1.eyebrow')}
+  title={t('aboutpage.s1.title')}
+  text={t('aboutpage.s1.text')}
+  image={breedingPhoto}
+  alt={t('aboutpage.s1.title')}
+  imagePosition="50% 40%"
+  portrait
+/>
+<Split
+  eyebrow={t('aboutpage.s2.eyebrow')}
+  title={t('aboutpage.s2.title')}
+  text={t('aboutpage.s2.text')}
+  image={trainingPhoto}
+  alt={t('aboutpage.s2.title')}
+  imagePosition="50% 40%"
+  portrait
+  reverse
+/>
+
+<CtaBand
+  title={t('aboutpage.cta.title')}
+  text={t('aboutpage.cta.text')}
+  buttonLabel={t('aboutpage.cta.button')}
+  buttonHref={localePath(lang, '/contatti')}
+/>
+
+<style>
+  .intro {
+    padding-block: clamp(4rem, 10vw, 8rem);
+  }
+  .intro__inner {
+    max-width: 820px;
+    text-align: center;
+  }
+  .intro__eyebrow {
+    margin: 0 0 1.25rem;
+    color: var(--red);
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    font-size: 0.8rem;
+    font-weight: 600;
+  }
+  .intro__text {
+    margin: 0;
+    font-family: var(--font-body);
+    font-weight: 500;
+    font-size: clamp(1.3rem, 2.6vw, 1.9rem);
+    line-height: 1.55;
+  }
+
+</style>

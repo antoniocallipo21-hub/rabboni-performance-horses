@@ -1,0 +1,150 @@
+---
+import Hero from './Hero.astro';
+import Social from './Social.astro';
+import ContactForm from './ContactForm.astro';
+import { contacts } from '../data/contacts';
+import { useTranslations, type Lang } from '../i18n/ui';
+
+interface Props {
+  lang: Lang;
+}
+
+const { lang } = Astro.props;
+const t = useTranslations(lang);
+const mapEmbed =
+  'https://www.google.com/maps?output=embed&q=' +
+  encodeURIComponent('Via per Marmirolo 20/a, Loc. Cacciola, 42019 Scandiano, Italy');
+---
+
+<Hero lang={lang} title={t('contact.title')} eyebrow="Rabboni Performance Horses" />
+
+<section class="contact">
+  <div class="container contact__grid">
+    <div class="contact__intro">
+      <p class="contact__eyebrow">{t('footer.findus')}</p>
+      <h2 class="contact__heading">{t('contact.title')}</h2>
+      <p class="contact__text">{t('contact.intro')}</p>
+    </div>
+
+    <dl class="contact__list">
+      <div class="contact__item">
+        <dt>{t('contact.phone')}</dt>
+        <dd><a href={`tel:${contacts.phone.replace(/\s/g, '')}`}>{contacts.phone}</a></dd>
+      </div>
+      <div class="contact__item">
+        <dt>{t('contact.email')}</dt>
+        <dd><a href={`mailto:${contacts.email}`}>{contacts.email}</a></dd>
+      </div>
+      <div class="contact__item">
+        <dt>{t('contact.address')}</dt>
+        <dd>
+          <address>
+            {contacts.address.map((line, i) => (<>{line}{i < contacts.address.length - 1 && <br />}</>))}
+          </address>
+          <a class="contact__map-link" href={contacts.mapsUrl} target="_blank" rel="noopener noreferrer">
+            {t('contact.openmap')}
+          </a>
+        </dd>
+      </div>
+      <div class="contact__item">
+        <dt>{t('contact.follow')}</dt>
+        <dd><Social /></dd>
+      </div>
+    </dl>
+  </div>
+
+  <ContactForm lang={lang} />
+
+  <div class="contact__map">
+    <iframe
+      title={t('footer.findus')}
+      src={mapEmbed}
+      loading="lazy"
+      referrerpolicy="no-referrer-when-downgrade"
+      allowfullscreen
+    ></iframe>
+  </div>
+</section>
+
+<style>
+  .contact {
+    padding-top: clamp(3rem, 8vw, 6rem);
+  }
+  .contact__grid {
+    display: grid;
+    gap: clamp(2rem, 6vw, 5rem);
+    padding-bottom: clamp(3rem, 8vw, 6rem);
+  }
+  .contact__eyebrow {
+    margin: 0 0 0.75rem;
+    color: var(--red);
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    font-size: 0.8rem;
+    font-weight: 600;
+  }
+  .contact__heading {
+    margin: 0 0 1.25rem;
+    font-family: var(--font-display);
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+    font-weight: 500;
+    font-size: clamp(1.9rem, 4vw, 3rem);
+    line-height: 1.15;
+  }
+  .contact__text {
+    margin: 0;
+    color: var(--gray);
+    font-size: 1.05rem;
+    max-width: 44ch;
+  }
+  .contact__list {
+    margin: 0;
+    display: grid;
+    gap: 1.75rem 2rem;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    align-content: start;
+  }
+  .contact__item dt {
+    margin-bottom: 0.4rem;
+    color: var(--red);
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    font-size: 0.75rem;
+    font-weight: 600;
+  }
+  .contact__item dd {
+    margin: 0;
+    font-size: 1.1rem;
+  }
+  .contact__item address {
+    font-style: normal;
+  }
+  .contact__item a:hover {
+    color: var(--red);
+  }
+  .contact__map-link {
+    display: inline-block;
+    margin-top: 0.6rem;
+    font-size: 0.9rem;
+    font-weight: 600;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+  .contact__map {
+    height: clamp(320px, 45vw, 480px);
+    background: var(--sand);
+  }
+  .contact__map iframe {
+    display: block;
+    width: 100%;
+    height: 100%;
+    border: 0;
+  }
+
+  @media (min-width: 900px) {
+    .contact__grid {
+      grid-template-columns: 1fr 1.2fr;
+    }
+  }
+</style>

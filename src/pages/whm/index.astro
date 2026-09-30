@@ -1,0 +1,11 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import WhmListContent from '../../components/WhmListContent.astro';
+import { useTranslations } from '../../i18n/ui';
+
+const t = useTranslations('it');
+---
+
+<Layout title={`${t('whm.title')} | Rabboni Performance Horses`} transparentHeader>
+  <WhmListContent lang="it" />
+</Layout>

@@ -1,0 +1,31 @@
+---
+// Adattatore: passa i campi del pedigree di un cavallo al componente generico PedigreeTree.
+import PedigreeTree from './PedigreeTree.astro';
+import type { HorseEntry } from '../lib/horses';
+import type { Lang } from '../i18n/ui';
+
+interface Props {
+  entry: HorseEntry;
+  lang: Lang;
+}
+
+const { entry } = Astro.props;
+const d = entry.data;
+---
+
+<PedigreeTree
+  sire={d.sire}
+  dam={d.dam}
+  sireSire={d.sireSire}
+  sireDam={d.sireDam}
+  damSire={d.damSire}
+  damDam={d.damDam}
+  sireSireSire={d.sireSireSire}
+  sireSireDam={d.sireSireDam}
+  sireDamSire={d.sireDamSire}
+  sireDamDam={d.sireDamDam}
+  damSireSire={d.damSireSire}
+  damSireDam={d.damSireDam}
+  damDamSire={d.damDamSire}
+  damDamDam={d.damDamDam}
+/>

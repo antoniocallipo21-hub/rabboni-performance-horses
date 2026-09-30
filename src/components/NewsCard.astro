@@ -1,0 +1,133 @@
+---
+import { formatDate, newsPath, newsSlug, type NewsEntry } from '../lib/news';
+import { useTranslations, type Lang } from '../i18n/ui';
+
+interface Props {
+  entry: NewsEntry;
+  lang: Lang;
+  featured?: boolean;
+  /** Copia normale della notizia in evidenza: si mostra solo quando è attivo un filtro */
+  dupe?: boolean;
+  delay?: number;
+}
+
+const { entry, lang, featured = false, dupe = false, delay = 0 } = Astro.props;
+const t = useTranslations(lang);
+const { title, date, category, excerpt, cover, coverAlt } = entry.data;
+const href = newsPath(lang, newsSlug(entry));
+---
+
+<article
+  class:list={['card', 'reveal', { 'card--featured': featured }]}
+  style={`--reveal-delay: ${delay}ms`}
+  data-category={category}
+  data-dupe={dupe ? '' : undefined}
+  data-featured={featured ? '' : undefined}
+  hidden={dupe}
+>
+  <a class="card__media" href={href} tabindex="-1" aria-hidden="true">
+    <img src={cover} alt={coverAlt ?? ''} loading="lazy" />
+  </a>
+  <div class="card__body">
+    <p class="card__meta">
+      {featured && <span class="card__badge">{t('news.featured')}</span>}
+      <span class="card__cat">{t(`cat.${category}` as const)}</span>
+      <time datetime={date.toISOString()}>{formatDate(date, lang)}</time>
+    </p>
+    <h3 class="card__title"><a href={href}>{title}</a></h3>
+    <p class="card__excerpt">{excerpt}</p>
+    <a class="card__link" href={href}>{t('news.read')} <span aria-hidden="true">→</span></a>
+  </div>
+</article>
+
+<style>
+  .card[hidden] {
+    display: none;
+  }
+  .card {
+    display: grid;
+    gap: 1.1rem;
+    align-content: start;
+  }
+  .card__media {
+    display: block;
+    overflow: hidden;
+    background: var(--sand);
+  }
+  .card__media img {
+    display: block;
+    width: 100%;
+    aspect-ratio: 4 / 3;
+    object-fit: cover;
+    transition: transform 0.8s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  .card:hover .card__media img {
+    transform: scale(1.05);
+  }
+  .card__meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.4rem 0.9rem;
+    margin: 0 0 0.6rem;
+    color: var(--gray);
+    font-size: 0.8rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+  .card__badge,
+  .card__cat {
+    color: var(--red);
+    font-weight: 600;
+    letter-spacing: 0.15em;
+  }
+  .card__badge {
+    padding: 0.15rem 0.6rem;
+    background: var(--red);
+    color: #fff;
+  }
+  .card__title {
+    margin: 0 0 0.6rem;
+    font-family: var(--font-display);
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+    font-weight: 500;
+    font-size: 1.5rem;
+    line-height: 1.2;
+  }
+  .card__title a:hover {
+    color: var(--red);
+  }
+  .card__excerpt {
+    margin: 0 0 1rem;
+    color: var(--gray);
+    line-height: 1.65;
+  }
+  .card__link {
+    font-weight: 600;
+    font-size: 0.9rem;
+    letter-spacing: 0.04em;
+    text-decoration: underline;
+    text-underline-offset: 4px;
+  }
+  .card__link:hover {
+    color: var(--red);
+  }
+
+  .card--featured .card__title {
+    font-size: clamp(1.9rem, 3.6vw, 2.9rem);
+  }
+  .card--featured .card__excerpt {
+    font-size: 1.1rem;
+  }
+  @media (min-width: 900px) {
+    .card--featured {
+      grid-template-columns: 1.3fr 1fr;
+      gap: clamp(2rem, 5vw, 4rem);
+      align-items: center;
+    }
+    .card--featured .card__media img {
+      aspect-ratio: 16 / 11;
+    }
+  }
+</style>

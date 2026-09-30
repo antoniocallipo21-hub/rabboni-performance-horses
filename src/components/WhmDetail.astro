@@ -1,0 +1,430 @@
+---
+import PedigreeTree from './PedigreeTree.astro';
+import { whmPath, type WhmEntry } from '../lib/whm';
+import { useTranslations, type Lang } from '../i18n/ui';
+
+interface Props {
+  entry: WhmEntry;
+  lang: Lang;
+}
+
+const { entry, lang } = Astro.props;
+const t = useTranslations(lang);
+const d = entry.data;
+const {
+  name, year, sex, breed, color, height,
+  price, seller, sellerPhone, sellerEmail,
+  excerpt, cover, coverAlt, gallery, video,
+} = d;
+
+const sexLabel = sex && sex.charAt(0).toUpperCase() + sex.slice(1);
+
+const facts = [
+  { label: 'Breed', value: breed },
+  { label: 'Color', value: color },
+  { label: 'Born', value: year },
+  { label: 'Height', value: height },
+  { label: 'Price', value: price || t('whm.priceOnRequest') },
+  { label: t('whm.seller'), value: seller },
+].filter((f) => f.value);
+
+// Prima foto = cover, poi il resto della galleria (senza doppioni).
+const images = [cover, ...(gallery ?? []).filter((g) => g !== cover)];
+
+const hasPedigree = d.sire || d.dam;
+const hasContact = sellerEmail || sellerPhone;
+const contactHref = sellerEmail ? `mailto:${sellerEmail}` : sellerPhone ? `tel:${sellerPhone.replace(/\s+/g, '')}` : undefined;
+
+function youtubeEmbed(input?: string) {
+  if (!input) return undefined;
+  const idMatch = input.match(/(?:youtu\.be\/|v=|embed\/)([\w-]{11})/);
+  const id = idMatch ? idMatch[1] : /^[\w-]{11}$/.test(input) ? input : undefined;
+  return id ? `https://www.youtube-nocookie.com/embed/${id}` : undefined;
+}
+const videoEmbed = youtubeEmbed(video);
+---
+
+<section class="whm-detail">
+  <div class="container whm-grid">
+    <div class="whm-media">
+      <button type="button" class="whm-media__main" data-full={images[0]} aria-label={`${t('gallery.open')}: ${name}`}>
+        <img id="whm-main-img" src={images[0]} alt={coverAlt ?? name} />
+      </button>
+      {images.length > 1 && (
+        <div class="whm-thumbs">
+          {images.map((src, i) => (
+            <button type="button" class:list={['whm-thumb', { 'is-active': i === 0 }]} data-src={src}>
+              <img src={src} alt="" loading="lazy" />
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+
+    <aside class="whm-info">
+      {sexLabel && <p class="whm-info__eyebrow">{sexLabel}</p>}
+      <h1 class="whm-info__name">{name}</h1>
+
+      <dl class="whm-info__facts">
+        {facts.map((f) => (
+          <div class="whm-info__row">
+            <dt>{f.label}</dt>
+            <dd>{f.value}</dd>
+          </div>
+        ))}
+      </dl>
+
+      {excerpt && <p class="whm-info__excerpt">{excerpt}</p>}
+
+      {hasContact && (
+        <a class="whm-info__cta" href={contactHref}>{t('whm.contactSeller')}</a>
+      )}
+    </aside>
+  </div>
+</section>
+
+{
+  hasPedigree && (
+    <PedigreeTree
+      sire={d.sire} dam={d.dam}
+      sireSire={d.sireSire} sireDam={d.sireDam} damSire={d.damSire} damDam={d.damDam}
+      sireSireSire={d.sireSireSire} sireSireDam={d.sireSireDam} sireDamSire={d.sireDamSire} sireDamDam={d.sireDamDam}
+      damSireSire={d.damSireSire} damSireDam={d.damSireDam} damDamSire={d.damDamSire} damDamDam={d.damDamDam}
+    />
+  )
+}
+
+{
+  /* Video nascosto: per WHM il video va nella galleria, non come sezione YouTube separata.
+  Codice lasciato per un eventuale riutilizzo futuro.
+  videoEmbed && (
+    <section class="video">
+      <div class="container">
+        <div class="video__frame">
+          <iframe
+            src={videoEmbed}
+            title={`${name} — video`}
+            loading="lazy"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+            allowfullscreen
+          />
+        </div>
+      </div>
+    </section>
+  )
+  */
+}
+
+<div class="container">
+  {hasContact && (
+    <div class="cta">
+      <p>{t('whm.contactSeller')}</p>
+      <a class="cta__btn" href={contactHref}>{t('whm.contactSeller')}</a>
+    </div>
+  )}
+
+  <a class="back" href={whmPath(lang)}>← {t('whm.back')}</a>
+</div>
+
+<dialog class="whm-lightbox" aria-label={name}>
+  <button type="button" class="whm-lightbox__btn whm-lightbox__close" aria-label={t('gallery.close')}>×</button>
+  <button type="button" class="whm-lightbox__btn whm-lightbox__prev" aria-label={t('gallery.prev')}>‹</button>
+  <button type="button" class="whm-lightbox__btn whm-lightbox__next" aria-label={t('gallery.next')}>›</button>
+  <img class="whm-lightbox__img" alt="" />
+</dialog>
+
+<script>
+  const mediaWrap = document.querySelector<HTMLElement>('.whm-media');
+  const mainBtn = document.querySelector<HTMLButtonElement>('.whm-media__main');
+  const mainImg = document.querySelector<HTMLImageElement>('#whm-main-img');
+  const thumbs = Array.from(document.querySelectorAll<HTMLButtonElement>('.whm-thumb'));
+  const dialog = document.querySelector<HTMLDialogElement>('.whm-lightbox');
+
+  if (mediaWrap && mainBtn && mainImg && dialog) {
+    const srcs = [mainBtn.dataset.full ?? '', ...thumbs.map((t) => t.dataset.src ?? '')].filter(Boolean);
+    const uniqueSrcs = srcs.filter((s, i) => srcs.indexOf(s) === i);
+    let index = 0;
+    const lbImg = dialog.querySelector<HTMLImageElement>('.whm-lightbox__img')!;
+
+    const setMain = (i: number) => {
+      index = (i + uniqueSrcs.length) % uniqueSrcs.length;
+      const src = uniqueSrcs[index];
+      mainImg.src = src;
+      mainBtn.dataset.full = src;
+      thumbs.forEach((t) => t.classList.toggle('is-active', t.dataset.src === src));
+    };
+
+    thumbs.forEach((thumb) => {
+      thumb.addEventListener('click', () => {
+        const i = uniqueSrcs.indexOf(thumb.dataset.src ?? '');
+        if (i >= 0) setMain(i);
+      });
+    });
+
+    const showLightbox = (i: number) => {
+      index = (i + uniqueSrcs.length) % uniqueSrcs.length;
+      lbImg.src = uniqueSrcs[index];
+    };
+    mainBtn.addEventListener('click', () => {
+      const i = uniqueSrcs.indexOf(mainBtn.dataset.full ?? '');
+      showLightbox(i >= 0 ? i : 0);
+      dialog.showModal();
+      document.documentElement.style.overflow = 'hidden';
+    });
+
+    dialog.querySelector('.whm-lightbox__close')!.addEventListener('click', () => dialog.close());
+    dialog.querySelector('.whm-lightbox__prev')!.addEventListener('click', () => showLightbox(index - 1));
+    dialog.querySelector('.whm-lightbox__next')!.addEventListener('click', () => showLightbox(index + 1));
+    dialog.addEventListener('close', () => {
+      document.documentElement.style.overflow = '';
+    });
+    dialog.addEventListener('click', (e) => {
+      if (e.target === dialog) dialog.close();
+    });
+    dialog.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowLeft') showLightbox(index - 1);
+      if (e.key === 'ArrowRight') showLightbox(index + 1);
+    });
+    let startX = 0;
+    dialog.addEventListener('touchstart', (e) => (startX = e.touches[0].clientX), { passive: true });
+    dialog.addEventListener('touchend', (e) => {
+      const dx = e.changedTouches[0].clientX - startX;
+      if (Math.abs(dx) > 50) showLightbox(index + (dx < 0 ? 1 : -1));
+    });
+  }
+</script>
+
+<style>
+  .whm-detail {
+    padding-block: clamp(2.5rem, 6vw, 4.5rem);
+  }
+  .whm-grid {
+    display: grid;
+    gap: clamp(2rem, 5vw, 4rem);
+  }
+  @media (min-width: 900px) {
+    .whm-grid {
+      grid-template-columns: 1.4fr 1fr;
+      align-items: start;
+    }
+  }
+
+  .whm-media__main {
+    display: block;
+    width: 100%;
+    padding: 0;
+    border: 0;
+    border-radius: 10px;
+    overflow: hidden;
+    background: var(--sand);
+    cursor: zoom-in;
+  }
+  .whm-media__main img {
+    display: block;
+    width: 100%;
+    aspect-ratio: 4 / 3;
+    object-fit: cover;
+  }
+  .whm-thumbs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+    margin-top: 0.75rem;
+  }
+  .whm-thumb {
+    width: 72px;
+    height: 72px;
+    padding: 0;
+    border: 2px solid transparent;
+    border-radius: 6px;
+    overflow: hidden;
+    cursor: pointer;
+    opacity: 0.7;
+    transition: opacity 0.2s, border-color 0.2s;
+  }
+  .whm-thumb img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  .whm-thumb:hover {
+    opacity: 1;
+  }
+  .whm-thumb.is-active {
+    border-color: var(--red);
+    opacity: 1;
+  }
+
+  .whm-info__eyebrow {
+    margin: 0 0 0.5rem;
+    color: var(--red);
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    font-size: 0.78rem;
+    font-weight: 600;
+  }
+  .whm-info__name {
+    margin: 0 0 1.5rem;
+    font-family: var(--font-display);
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+    font-weight: 500;
+    font-size: clamp(2rem, 4vw, 2.8rem);
+  }
+  .whm-info__facts {
+    margin: 0 0 1.75rem;
+    border-top: 1px solid #e6e2dc;
+  }
+  .whm-info__row {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 1rem;
+    padding-block: 0.9rem;
+    border-bottom: 1px solid #e6e2dc;
+  }
+  .whm-info__row dt {
+    color: var(--gray);
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    font-size: 0.75rem;
+    font-weight: 600;
+  }
+  .whm-info__row dd {
+    margin: 0;
+    text-align: right;
+    font-family: var(--font-display);
+    font-size: 1.2rem;
+  }
+  .whm-info__excerpt {
+    margin: 0 0 1.75rem;
+    line-height: 1.7;
+    color: #444;
+  }
+  .whm-info__cta {
+    display: inline-block;
+    padding: 0.85rem 2rem;
+    background: var(--red);
+    color: #fff;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    transition: background 0.2s;
+  }
+  .whm-info__cta:hover {
+    background: var(--red-dark);
+  }
+
+  .video {
+    padding-block: clamp(3rem, 8vw, 6rem);
+    background: var(--ink);
+  }
+  .video__frame {
+    position: relative;
+    max-width: 900px;
+    margin-inline: auto;
+    aspect-ratio: 16 / 9;
+    background: #000;
+  }
+  .video__frame iframe {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    border: 0;
+  }
+
+  .cta {
+    margin-top: clamp(2.5rem, 6vw, 4rem);
+    padding: clamp(1.5rem, 4vw, 2.5rem);
+    background: var(--sand);
+    text-align: center;
+  }
+  .cta p {
+    margin: 0 0 1.25rem;
+    color: var(--gray);
+    font-size: 1.02rem;
+  }
+  .cta__btn {
+    display: inline-block;
+    padding: 0.85rem 2rem;
+    background: var(--red);
+    color: #fff;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    transition: background 0.2s;
+  }
+  .cta__btn:hover {
+    background: var(--red-dark);
+  }
+  .back {
+    display: inline-block;
+    margin-top: 2.5rem;
+    margin-bottom: clamp(3rem, 8vw, 6rem);
+    font-weight: 600;
+    letter-spacing: 0.04em;
+  }
+  .back:hover {
+    color: var(--red);
+  }
+
+  .whm-lightbox {
+    width: 100vw;
+    max-width: none;
+    height: 100vh;
+    height: 100dvh;
+    max-height: none;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    background: rgba(12, 8, 8, 0.94);
+  }
+  .whm-lightbox::backdrop {
+    background: rgba(12, 8, 8, 0.94);
+  }
+  .whm-lightbox[open] {
+    display: grid;
+    place-items: center;
+  }
+  .whm-lightbox__img {
+    display: block;
+    max-width: min(92vw, 1400px);
+    max-height: 86vh;
+    max-height: 86dvh;
+    width: auto;
+    height: auto;
+    object-fit: contain;
+  }
+  .whm-lightbox__btn {
+    position: absolute;
+    display: grid;
+    place-items: center;
+    width: 52px;
+    height: 52px;
+    border: 0;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.1);
+    color: #fff;
+    font-size: 2rem;
+    line-height: 1;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+  .whm-lightbox__btn:hover {
+    background: var(--red);
+  }
+  .whm-lightbox__close {
+    top: 1rem;
+    right: 1rem;
+  }
+  .whm-lightbox__prev {
+    left: 1rem;
+    top: 50%;
+    translate: 0 -50%;
+  }
+  .whm-lightbox__next {
+    right: 1rem;
+    top: 50%;
+    translate: 0 -50%;
+  }
+</style>

@@ -1,0 +1,11 @@
+---
+import Layout from '../../../layouts/Layout.astro';
+import StallionListContent from '../../../components/StallionListContent.astro';
+import { useTranslations } from '../../../i18n/ui';
+
+const t = useTranslations('en');
+---
+
+<Layout title={`${t('stallions.title')} | Rabboni Performance Horses`} transparentHeader>
+  <StallionListContent lang="en" />
+</Layout>

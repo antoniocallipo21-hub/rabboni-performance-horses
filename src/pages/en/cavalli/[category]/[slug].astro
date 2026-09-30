@@ -1,0 +1,27 @@
+---
+import { render } from 'astro:content';
+import Layout from '../../../../layouts/Layout.astro';
+import HorseDetail from '../../../../components/HorseDetail.astro';
+import { horseCategories } from '../../../../data/horseCategories';
+import { getHorses } from '../../../../lib/horses';
+
+export async function getStaticPaths() {
+  const paths = [];
+  for (const c of horseCategories) {
+    const horses = await getHorses('en', c.slug);
+    for (const entry of horses) {
+      paths.push({ params: { category: c.slug, slug: entry.id.split('/').slice(1).join('/') }, props: { entry } });
+    }
+  }
+  return paths;
+}
+
+const { entry } = Astro.props;
+const { Content } = await render(entry);
+---
+
+<Layout title={`${entry.data.name} | Rabboni Performance Horses`} description={entry.data.excerpt} transparentHeader>
+  <HorseDetail entry={entry} lang="en">
+    <Content />
+  </HorseDetail>
+</Layout>

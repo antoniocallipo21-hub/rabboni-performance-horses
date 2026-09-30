@@ -1,0 +1,76 @@
+---
+import { Image } from 'astro:assets';
+import sellingPhoto from '../assets/pillar-selling.jpg';
+import breedingPhoto from '../assets/pillar-breeding.jpg';
+import trainingPhoto from '../assets/pillar-training.jpg';
+import showingPhoto from '../assets/pillar-showing.jpg';
+import { useTranslations, type Lang } from '../i18n/ui';
+
+interface Props {
+  lang: Lang;
+}
+
+const t = useTranslations(Astro.props.lang);
+
+const items: { key: 'selling' | 'breeding' | 'training' | 'showing'; pos: string; image: ImageMetadata; alt: string }[] = [
+  { key: 'selling', pos: '50% 50%', image: sellingPhoto, alt: 'Vendita' },
+  { key: 'breeding', pos: '50% 50%', image: breedingPhoto, alt: 'Allevamento' },
+  { key: 'training', pos: '50% 50%', image: trainingPhoto, alt: 'Addestramento' },
+  { key: 'showing', pos: '50% 50%', image: showingPhoto, alt: 'Competizione' },
+];
+---
+
+<section class="pillars">
+  <div class="container pillars__grid">
+    {
+      items.map((item, i) => (
+        <article class="pillar reveal" style={`--reveal-delay: ${i * 200}ms`}>
+          <Image
+            src={item.image}
+            alt={item.alt}
+            class="pillar__img"
+            style={`object-position: ${item.pos}`}
+            widths={[400, 800]}
+            sizes="(min-width: 900px) 25vw, 50vw"
+          />
+          <h2 class="pillar__title">{t(`pillars.${item.key}.title` as const)}</h2>
+          <p class="pillar__text">{t(`pillars.${item.key}.text` as const)}</p>
+        </article>
+      ))
+    }
+  </div>
+</section>
+
+<style>
+  .pillars {
+    padding-block: clamp(3rem, 8vw, 6rem);
+    background: var(--sand);
+  }
+  .pillars__grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: clamp(1.25rem, 3vw, 2.5rem);
+  }
+  .pillar {
+    text-align: center;
+  }
+  .pillar__img {
+    width: 100%;
+    height: auto;
+    aspect-ratio: 3 / 4;
+    object-fit: cover;
+    margin-bottom: 1.25rem;
+  }
+  .pillar__title {
+    margin: 0 0 0.4rem;
+    font-family: var(--font-display);
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+    font-size: 1.6rem;
+    font-weight: 500;
+  }
+  .pillar__text {
+    margin: 0;
+    color: var(--gray);
+  }
+</style>

@@ -1,0 +1,20 @@
+---
+import { render } from 'astro:content';
+import Layout from '../../layouts/Layout.astro';
+import StallionDetail from '../../components/StallionDetail.astro';
+import { getStallions, stallionSlug } from '../../lib/stallions';
+
+export async function getStaticPaths() {
+  const stallions = await getStallions('it');
+  return stallions.map((entry) => ({ params: { slug: stallionSlug(entry) }, props: { entry } }));
+}
+
+const { entry } = Astro.props;
+const { Content } = await render(entry);
+---
+
+<Layout title={`${entry.data.name} | Rabboni Performance Horses`} description={entry.data.excerpt} transparentHeader>
+  <StallionDetail entry={entry} lang="it">
+    <Content />
+  </StallionDetail>
+</Layout>

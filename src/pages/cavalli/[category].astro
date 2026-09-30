@@ -1,0 +1,18 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import HorseCategoryContent from '../../components/HorseCategoryContent.astro';
+import { horseCategories } from '../../data/horseCategories';
+import { useTranslations } from '../../i18n/ui';
+
+export function getStaticPaths() {
+  return horseCategories.map((c) => ({ params: { category: c.slug }, props: { navKey: c.navKey } }));
+}
+
+const { category } = Astro.params;
+const { navKey } = Astro.props;
+const t = useTranslations('it');
+---
+
+<Layout title={`${t(navKey as any)} | Rabboni Performance Horses`} transparentHeader>
+  <HorseCategoryContent lang="it" category={category as any} />
+</Layout>

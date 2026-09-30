@@ -1,0 +1,144 @@
+---
+import { Image } from 'astro:assets';
+import defaultImage from '../assets/hero.jpg';
+import { useTranslations, type Lang } from '../i18n/ui';
+
+interface Props {
+  lang: Lang;
+  /** Titolo visibile sulla foto. Se assente (home) il titolo resta solo per SEO. */
+  title?: string;
+  eyebrow?: string;
+  /** Riga secondaria sotto il titolo (es. il pedigree breve di un cavallo) */
+  subtitle?: string;
+  image?: ImageMetadata;
+  /** In alternativa a `image`: indirizzo di una foto (es. caricata dal CMS in /uploads) */
+  imageUrl?: string;
+  /** Punto della foto da tenere in vista quando viene ritagliata (es. "50% 0%") */
+  position?: string;
+  /** Scurimento uniforme sopra la foto, da 0 a 1 */
+  shade?: number;
+  alt?: string;
+}
+
+const { lang, title, eyebrow, subtitle, image = defaultImage, imageUrl, position = '50% 50%', shade = 0, alt = 'Rabboni Performance Horses' } = Astro.props;
+const t = useTranslations(lang);
+---
+
+<section class:list={['hero', { 'hero--titled': !!title }]} style={`--hero-pos: ${position}; --hero-shade: ${shade}`}>
+  {
+    imageUrl ? (
+      <img src={imageUrl} alt={alt} class="hero__img" loading="eager" fetchpriority="high" />
+    ) : (
+      <Image src={image} alt={alt} class="hero__img" widths={[800, 1600, 2400]} sizes="100vw" loading="eager" />
+    )
+  }
+  <div class="hero__overlay"></div>
+  {
+    title ? (
+      <div class="container hero__content">
+        {eyebrow && <p class="hero__eyebrow">{eyebrow}</p>}
+        <h1 class="hero__title">{title}</h1>
+        {subtitle && <p class="hero__subtitle">{subtitle}</p>}
+      </div>
+    ) : (
+      <h1 class="visually-hidden">{t('hero.title')}</h1>
+    )
+  }
+</section>
+
+<script>
+  const hero = document.querySelector<HTMLElement>('.hero');
+  const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (hero && !reduce) {
+    let ticking = false;
+    const update = () => {
+      const y = Math.min(window.scrollY, hero.offsetHeight);
+      hero.style.setProperty('--hero-fade', String(Math.min(y / hero.offsetHeight, 1) * 0.35));
+      ticking = false;
+    };
+    window.addEventListener(
+      'scroll',
+      () => {
+        if (!ticking) {
+          ticking = true;
+          requestAnimationFrame(update);
+        }
+      },
+      { passive: true },
+    );
+    update();
+  }
+</script>
+
+<style>
+  .visually-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+  }
+  .hero {
+    position: relative;
+    min-height: 100svh;
+    display: grid;
+    align-items: end;
+    color: #fff;
+    overflow: hidden;
+  }
+  .hero__img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: var(--hero-pos, 50% 50%);
+    transform: scale(1.04);
+  }
+  .hero::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: #000;
+    opacity: var(--hero-fade, 0);
+    pointer-events: none;
+  }
+  .hero__overlay {
+    position: absolute;
+    inset: 0;
+    background:
+      linear-gradient(to bottom, rgba(0, 0, 0, 0.55) 0%, rgba(0, 0, 0, 0) 30%),
+      rgba(20, 8, 8, var(--hero-shade, 0));
+  }
+  .hero--titled .hero__overlay {
+    background:
+      linear-gradient(to bottom, rgba(0, 0, 0, 0.45) 0%, rgba(0, 0, 0, 0) 28%),
+      linear-gradient(to top, rgba(0, 0, 0, 0.7) 0%, rgba(0, 0, 0, 0) 55%);
+  }
+  .hero__content {
+    position: relative;
+    padding-bottom: clamp(3rem, 10vh, 6rem);
+  }
+  .hero__eyebrow {
+    margin: 0 0 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.25em;
+    font-size: 0.85rem;
+    font-weight: 600;
+  }
+  .hero__title {
+    margin: 0;
+    font-family: var(--font-display);
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+    font-weight: 500;
+    font-size: clamp(2.6rem, 7vw, 5.5rem);
+    line-height: 1.05;
+  }
+  .hero__subtitle {
+    margin: 0.75rem 0 0;
+    color: rgba(255, 255, 255, 0.85);
+    font-size: clamp(1rem, 2vw, 1.3rem);
+  }
+</style>

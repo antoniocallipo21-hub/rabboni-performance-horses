@@ -1,0 +1,624 @@
+---
+import '../styles/global.css';
+import logo from '../assets/logo.svg';
+import logoR from '../assets/logo-r.svg';
+import Social from '../components/Social.astro';
+import { contacts } from '../data/contacts';
+import { getLangFromUrl, useTranslations, localePath, type Lang } from '../i18n/ui';
+
+interface Props {
+  title?: string;
+  description?: string;
+  transparentHeader?: boolean;
+  noindex?: boolean;
+}
+
+const lang = getLangFromUrl(Astro.url);
+const t = useTranslations(lang);
+const { title = 'Rabboni Performance Horses', description = t('site.description'), transparentHeader = false, noindex = false } = Astro.props;
+
+const otherLang: Lang = lang === 'it' ? 'en' : 'it';
+const currentPath = Astro.url.pathname.replace(/^\/en(?=\/|$)/, '') || '/';
+
+type NavItem = { key: string; path: string; children?: { key: string; path: string }[] };
+const nav: NavItem[] = [
+  { key: 'nav.about', path: '/chi-siamo' },
+  { key: 'nav.stallions', path: '/stalloni' },
+  {
+    key: 'nav.horses',
+    path: '/cavalli',
+    children: [
+      { key: 'nav.horses.broodmares', path: '/cavalli/broodmares' },
+      { key: 'nav.horses.show', path: '/cavalli/show-horses' },
+      { key: 'nav.horses.three', path: '/cavalli/three-years-old' },
+      { key: 'nav.horses.two', path: '/cavalli/two-years-old' },
+      { key: 'nav.horses.yearlings', path: '/cavalli/yearlings' },
+      { key: 'nav.horses.weanlings', path: '/cavalli/weanlings' },
+    ],
+  },
+  { key: 'nav.news', path: '/news' },
+  { key: 'nav.gallery', path: '/gallery' },
+  { key: 'nav.whm', path: '/whm' },
+  { key: 'nav.contact', path: '/contatti' },
+];
+---
+
+<!doctype html>
+<html lang={lang}>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content={description} />
+    {noindex && <meta name="robots" content="noindex" />}
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16.png" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+    <link rel="manifest" href="/site.webmanifest" />
+    <meta name="theme-color" content="#ffffff" />
+    <link rel="alternate" hreflang="it" href={new URL(localePath('it', currentPath), Astro.site ?? Astro.url)} />
+    <link rel="alternate" hreflang="en" href={new URL(localePath('en', currentPath), Astro.site ?? Astro.url)} />
+    <meta name="generator" content={Astro.generator} />
+    <script is:inline>document.documentElement.classList.add('js');</script>
+    <title>{title}</title>
+  </head>
+  <body>
+    <header class:list={['header', { 'header--overlay': transparentHeader }]}>
+      <div class="container header__inner">
+        <a href={localePath(lang, '/')} class="header__logo" aria-label="Rabboni Performance Horses">
+          <img src={logo.src} alt="Rabboni Performance Horses" width={logo.width} height={logo.height} />
+        </a>
+        <button class="header__toggle" type="button" aria-expanded="false" aria-controls="main-nav" aria-label={t('nav.menu')}>
+          <span></span><span></span><span></span>
+        </button>
+        <nav class="header__nav" id="main-nav" aria-label="Principale">
+          {
+            nav.map((item) =>
+              item.children ? (
+                <div class="nav-item nav-item--sub">
+                  <button type="button" class="nav-parent" aria-expanded="false" aria-haspopup="true">
+                    <span>{t(item.key as any)}</span>
+                    <svg class="nav-parent__chev" width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                      <path d="M1.5 3.5 5 7l3.5-3.5" />
+                    </svg>
+                  </button>
+                  <ul class="nav-sub">
+                    {item.children.map((c) => (
+                      <li><a href={localePath(lang, c.path)}>{t(c.key as any)}</a></li>
+                    ))}
+                  </ul>
+                </div>
+              ) : (
+                <a href={localePath(lang, item.path)}>{t(item.key as any)}</a>
+              ),
+            )
+          }
+          <a class="header__lang" href={localePath(otherLang, currentPath)} hreflang={otherLang} lang={otherLang}>
+            {otherLang.toUpperCase()}
+          </a>
+          <Social class="header__social" />
+        </nav>
+      </div>
+    </header>
+
+    <main>
+      <slot />
+    </main>
+
+    <footer class="footer" id="site-footer">
+      <div class="container footer__grid">
+        <div>
+          <img class="footer__mark" src={logoR.src} alt="" width={logoR.width} height={logoR.height} />
+          <p class="footer__brand">Rabboni <span>Performance Horses</span></p>
+        </div>
+        <div>
+          <p class="footer__heading">{t('footer.findus')}</p>
+          <address class="footer__muted">
+            <a href={contacts.mapsUrl} target="_blank" rel="noopener noreferrer">
+              {contacts.address.map((line, i) => (<>{line}{i < contacts.address.length - 1 && <br />}</>))}
+            </a>
+          </address>
+        </div>
+        <div>
+          <p class="footer__heading">{t('footer.contact')}</p>
+          <p class="footer__muted">
+            <a href={`tel:${contacts.phone.replace(/\s/g, '')}`}>{contacts.phone}</a><br />
+            <a href={`mailto:${contacts.email}`}>{contacts.email}</a>
+          </p>
+          <Social class="footer__social" />
+        </div>
+      </div>
+      <div class="container footer__bottom">
+        <p>© {new Date().getFullYear()} Rabboni Performance Horses</p>
+        <p class="footer__credit">
+          {t('footer.madeby')}{' '}
+          <a href="https://www.reiningfactory.com/it/" target="_blank" rel="noopener noreferrer">Reining Factory</a>
+        </p>
+        <nav aria-label="Legal">
+          <a href={localePath(lang, '/privacy-policy')}>{t('footer.privacy')}</a>
+          <a href={localePath(lang, '/cookie-policy')}>{t('footer.cookie')}</a>
+        </nav>
+      </div>
+    </footer>
+
+    <button type="button" class="back-to-top" aria-label={t('backtotop')} title={t('backtotop')}>
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M12 19V5M5 12l7-7 7 7" />
+      </svg>
+    </button>
+
+    <script is:inline>
+      (function () {
+        var btn = document.querySelector('.back-to-top');
+        if (btn) {
+          var show = function () {
+            btn.classList.toggle('is-visible', window.scrollY > 600);
+          };
+          show();
+          window.addEventListener('scroll', show, { passive: true });
+          btn.addEventListener('click', function () {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+          });
+        }
+      })();
+    </script>
+
+    <script is:inline>
+      (function () {
+        var items = document.querySelectorAll('.reveal');
+        if (!items.length) return;
+        if (!('IntersectionObserver' in window)) {
+          items.forEach(function (el) { el.classList.add('is-visible'); });
+          return;
+        }
+        var io = new IntersectionObserver(function (entries) {
+          entries.forEach(function (entry) {
+            if (entry.isIntersecting) {
+              entry.target.classList.add('is-visible');
+              io.unobserve(entry.target);
+            }
+          });
+        }, { threshold: 0.15, rootMargin: '0px 0px -8% 0px' });
+        items.forEach(function (el) { io.observe(el); });
+      })();
+    </script>
+
+    <script is:inline>
+      (function () {
+        var btn = document.querySelector('.header__toggle');
+        var header = document.querySelector('.header');
+        if (!btn) return;
+        btn.addEventListener('click', function () {
+          var open = header.classList.toggle('header--open');
+          btn.setAttribute('aria-expanded', String(open));
+        });
+      })();
+      // sotto-menu: "Cavalli" è solo un pulsante che apre la tendina
+      (function () {
+        var items = document.querySelectorAll('.nav-item--sub');
+        function close(item) {
+          item.classList.remove('is-open');
+          item.querySelector('.nav-parent').setAttribute('aria-expanded', 'false');
+        }
+        items.forEach(function (item) {
+          var toggle = item.querySelector('.nav-parent');
+          toggle.addEventListener('click', function (e) {
+            e.stopPropagation();
+            var open = item.classList.toggle('is-open');
+            toggle.setAttribute('aria-expanded', String(open));
+          });
+        });
+        document.addEventListener('click', function (e) {
+          items.forEach(function (item) { if (!item.contains(e.target)) close(item); });
+        });
+        document.addEventListener('keydown', function (e) {
+          if (e.key === 'Escape') items.forEach(close);
+        });
+      })();
+    </script>
+
+    {
+      transparentHeader && (
+        <script is:inline>
+          (function () {
+            var header = document.querySelector('.header--overlay');
+            if (!header) return;
+            function update() {
+              header.classList.toggle('header--visible', window.scrollY > 80);
+            }
+            update();
+            window.addEventListener('scroll', update, { passive: true });
+          })();
+        </script>
+      )
+    }
+  </body>
+</html>
+
+<style is:global>
+  .header {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    background: #fff;
+    border-bottom: 1px solid #eee;
+  }
+  .header--overlay {
+    --header-bg-scrolled: rgba(255, 255, 255, 0.82);
+    position: fixed;
+    inset: 0 0 auto 0;
+    background: transparent;
+    border-bottom: 0;
+    transition: background-color 0.3s ease, box-shadow 0.3s ease, backdrop-filter 0.3s ease;
+  }
+  .header--overlay .header__nav {
+    color: #fff;
+    text-shadow: 0 1px 6px rgba(0, 0, 0, 0.55);
+    transition: color 0.3s ease;
+  }
+  .header--overlay .header__lang {
+    border-color: currentColor;
+    color: inherit;
+  }
+  .header--overlay.header--visible {
+    background: var(--header-bg-scrolled);
+    -webkit-backdrop-filter: blur(8px);
+    backdrop-filter: blur(8px);
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+  }
+  .header--overlay.header--visible .header__nav {
+    color: var(--ink);
+    text-shadow: none;
+  }
+  .header--overlay.header--visible .header__lang {
+    color: var(--gray);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .header--overlay,
+    .header--overlay .header__nav {
+      transition: none;
+    }
+  }
+  .header__inner {
+    width: 100%;
+    max-width: none;
+    padding-inline: clamp(1rem, 2.5vw, 2.5rem);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding-block: 0.5rem;
+  }
+  .header__logo img {
+    height: 90px;
+    width: auto;
+  }
+  .header__nav {
+    display: flex;
+    align-items: center;
+    gap: clamp(0.75rem, 1.8vw, 1.5rem);
+    font-family: var(--font-nav);
+    font-size: 0.95rem;
+    font-weight: 400;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+  .header__nav a:hover {
+    color: var(--red);
+  }
+  .nav-item {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+  }
+  .nav-parent {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: inherit;
+    font: inherit;
+    letter-spacing: inherit;
+    text-transform: inherit;
+    text-shadow: inherit;
+    cursor: pointer;
+  }
+  .nav-parent:hover {
+    color: var(--red);
+  }
+  .nav-parent__chev {
+    transition: transform 0.2s;
+  }
+  .nav-item:hover .nav-parent__chev,
+  .nav-item.is-open .nav-parent__chev {
+    transform: rotate(180deg);
+  }
+  .nav-sub {
+    position: absolute;
+    top: 100%;
+    left: -1rem;
+    z-index: 60;
+    min-width: 230px;
+    margin: 0;
+    padding: 0.6rem 0;
+    list-style: none;
+    background: #fff;
+    border-top: 2px solid var(--red);
+    box-shadow: 0 14px 30px rgba(0, 0, 0, 0.18);
+    color: var(--ink);
+    text-shadow: none;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(8px);
+    transition: opacity 0.2s, transform 0.2s, visibility 0.2s;
+  }
+  /* ponte invisibile: il puntatore non "cade" tra la voce e il menu */
+  .nav-item--sub::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 100%;
+    height: 18px;
+  }
+  .nav-item:hover .nav-sub,
+  .nav-item:focus-within .nav-sub,
+  .nav-item.is-open .nav-sub {
+    opacity: 1;
+    visibility: visible;
+    transform: none;
+  }
+  .nav-sub a {
+    display: block;
+    padding: 0.55rem 1.2rem;
+    white-space: nowrap;
+  }
+  .nav-sub a:hover {
+    background: var(--sand);
+    color: var(--red);
+  }
+  .header__lang {
+    border: 1px solid var(--gray);
+    border-radius: 999px;
+    padding: 0.15rem 0.7rem;
+    font-size: 0.8rem;
+    color: var(--gray);
+  }
+  .footer {
+    padding-block: 3.5rem;
+    background: var(--ink);
+    color: #bbb;
+    font-size: 0.95rem;
+  }
+  .footer__grid {
+    display: grid;
+    gap: 2rem;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  }
+  .footer__mark {
+    display: block;
+    width: auto;
+    height: 64px;
+    margin-bottom: 1rem;
+  }
+  .footer__brand {
+    margin: 0 0 0.5rem;
+    color: #fff;
+    font-family: var(--font-display);
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+    font-size: 1.5rem;
+  }
+  .footer__brand span {
+    display: block;
+    font-family: var(--font-body);
+    font-size: 0.75rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    font-style: italic;
+  }
+  .footer__heading {
+    margin: 0 0 0.5rem;
+    color: #fff;
+    font-weight: 600;
+  }
+  .footer__muted {
+    margin: 0;
+  }
+  .footer__social {
+    margin-top: 1rem;
+    color: #fff;
+  }
+  .footer address {
+    font-style: normal;
+  }
+  .footer a:hover {
+    color: var(--red);
+  }
+  .footer__bottom {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: center;
+    gap: 0.75rem 2rem;
+    margin-top: 2.5rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.12);
+    font-size: 0.85rem;
+  }
+  .footer__bottom p {
+    margin: 0;
+  }
+  .footer__credit {
+    font-size: 0.72rem;
+    opacity: 0.75;
+  }
+  .footer__credit a {
+    color: inherit;
+    font-weight: 500;
+  }
+  .footer__credit a:hover {
+    color: var(--red);
+  }
+  .footer__bottom nav {
+    justify-self: end;
+  }
+  @media (max-width: 800px) {
+    .footer__bottom {
+      grid-template-columns: 1fr;
+      justify-items: center;
+      text-align: center;
+    }
+    .footer__bottom nav {
+      justify-self: center;
+    }
+  }
+  .footer__bottom nav {
+    display: flex;
+    gap: 1.5rem;
+  }
+  .back-to-top {
+    position: fixed;
+    right: clamp(1rem, 3vw, 2rem);
+    bottom: clamp(1rem, 3vw, 2rem);
+    z-index: 40;
+    display: grid;
+    place-items: center;
+    width: 46px;
+    height: 46px;
+    padding: 0;
+    border: 0;
+    border-radius: 50%;
+    background: var(--red);
+    color: #fff;
+    cursor: pointer;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(12px);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.25);
+    transition: opacity 0.25s ease, transform 0.25s ease, visibility 0.25s, background 0.2s;
+  }
+  .back-to-top.is-visible {
+    opacity: 1;
+    visibility: visible;
+    transform: none;
+  }
+  .back-to-top:hover {
+    background: var(--red-dark);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .back-to-top {
+      transition: opacity 0.25s ease, visibility 0.25s, background 0.2s;
+    }
+  }
+  .header__toggle {
+    display: none;
+    width: 44px;
+    height: 44px;
+    padding: 10px;
+    border: 0;
+    background: transparent;
+    cursor: pointer;
+    flex-direction: column;
+    justify-content: center;
+    gap: 5px;
+  }
+  .header__toggle span {
+    display: block;
+    height: 2px;
+    background: var(--ink);
+    transition: background 0.3s ease;
+  }
+  .header--overlay:not(.header--visible):not(.header--open) .header__toggle span {
+    background: #fff;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
+  }
+  @media (max-width: 1080px) {
+    .header__toggle {
+      display: flex;
+    }
+    .header__nav {
+      display: none;
+      position: absolute;
+      top: 100%;
+      left: 0;
+      right: 0;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 0;
+      padding: 0.5rem var(--gutter) 1.25rem;
+      background: rgba(255, 255, 255, 0.97);
+      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.08);
+      max-height: calc(100vh - 7rem);
+      max-height: calc(100dvh - 7rem);
+      overflow-y: auto;
+      overscroll-behavior: contain;
+    }
+    .header--open .header__nav {
+      display: flex;
+    }
+    .header .header__nav,
+    .header--overlay .header__nav {
+      color: var(--ink);
+      text-shadow: none;
+    }
+    .header__nav a {
+      padding: 0.7rem 0;
+      width: 100%;
+    }
+    .nav-item {
+      flex-wrap: wrap;
+      width: 100%;
+      gap: 0;
+    }
+    .nav-parent {
+      justify-content: space-between;
+      width: 100%;
+      padding: 0.7rem 0;
+    }
+    .nav-item--sub::after {
+      display: none;
+    }
+    .nav-sub {
+      position: static;
+      display: none;
+      flex-basis: 100%;
+      min-width: 0;
+      padding: 0 0 0.4rem 1rem;
+      background: transparent;
+      border-top: 0;
+      box-shadow: none;
+      opacity: 1;
+      visibility: visible;
+      transform: none;
+    }
+    .nav-item:hover .nav-sub,
+    .nav-item:focus-within .nav-sub {
+      display: none;
+    }
+    .nav-item.is-open .nav-sub {
+      display: block;
+    }
+    .nav-item:hover .nav-parent__chev {
+      transform: none;
+    }
+    .nav-item.is-open .nav-parent__chev {
+      transform: rotate(180deg);
+    }
+    .nav-sub a {
+      padding: 0.5rem 0;
+      color: var(--gray);
+    }
+    .header__nav .header__lang {
+      width: auto;
+      margin-top: 0.5rem;
+      padding: 0.25rem 0.9rem;
+      color: var(--gray);
+    }
+    .header--overlay.header--open {
+      background: #fff;
+    }
+  }
+</style>

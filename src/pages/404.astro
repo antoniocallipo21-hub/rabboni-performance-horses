@@ -1,0 +1,134 @@
+---
+import { Image } from 'astro:assets';
+import Layout from '../layouts/Layout.astro';
+import photo from '../assets/hero-bridles.jpg';
+---
+
+<Layout title="404 | Rabboni Performance Horses" transparentHeader noindex>
+  <!-- La 404 è una sola per tutto il sito: mostra la lingua in base all'indirizzo digitato (/en/...) -->
+  <script is:inline>
+    if (/^\/en(\/|$)/.test(location.pathname)) document.documentElement.classList.add('lang-en');
+  </script>
+
+  <section class="nf">
+    <Image src={photo} alt="" class="nf__img" widths={[800, 1600, 2400]} sizes="100vw" loading="eager" />
+    <div class="nf__shade"></div>
+
+    <div class="container nf__content">
+      <p class="nf__code" aria-hidden="true">404</p>
+
+      <div data-l="it">
+        <h1 class="nf__title">Pagina non trovata</h1>
+        <p class="nf__text">Sembra che questa pagina sia scappata dal recinto. Puoi tornare alla home oppure scriverci: ti aiutiamo volentieri.</p>
+        <div class="nf__actions">
+          <a class="nf__btn" href="/">Torna alla home</a>
+          <a class="nf__btn nf__btn--ghost" href="/contatti">Contattaci</a>
+        </div>
+      </div>
+
+      <div data-l="en">
+        <h1 class="nf__title">Page not found</h1>
+        <p class="nf__text">Looks like this page has wandered off from the paddock. You can head back home or write to us: we are happy to help.</p>
+        <div class="nf__actions">
+          <a class="nf__btn" href="/en/">Back to home</a>
+          <a class="nf__btn nf__btn--ghost" href="/en/contatti">Contact us</a>
+        </div>
+      </div>
+    </div>
+  </section>
+</Layout>
+
+<style is:global>
+  html:not(.lang-en) [data-l='en'],
+  html.lang-en [data-l='it'] {
+    display: none;
+  }
+</style>
+
+<style>
+  .nf {
+    position: relative;
+    min-height: 100svh;
+    display: grid;
+    align-items: center;
+    overflow: hidden;
+    color: #fff;
+    text-align: center;
+  }
+  .nf__img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: 50% 0%;
+    transform: scale(1.04);
+  }
+  .nf__shade {
+    position: absolute;
+    inset: 0;
+    background:
+      linear-gradient(to bottom, rgba(0, 0, 0, 0.55) 0%, rgba(0, 0, 0, 0) 30%),
+      rgba(20, 8, 8, 0.62);
+  }
+  .nf__content {
+    position: relative;
+    padding-block: 8rem 5rem;
+    max-width: 720px;
+  }
+  .nf__code {
+    margin: 0;
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: clamp(7rem, 26vw, 15rem);
+    line-height: 0.9;
+    letter-spacing: 0.02em;
+    color: var(--red);
+    text-shadow: 0 4px 30px rgba(0, 0, 0, 0.35);
+  }
+  .nf__title {
+    margin: 1rem 0 1rem;
+    font-family: var(--font-display);
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+    font-weight: 500;
+    font-size: clamp(1.9rem, 5vw, 3.2rem);
+    line-height: 1.1;
+  }
+  .nf__text {
+    margin: 0 auto 2rem;
+    max-width: 52ch;
+    color: rgba(255, 255, 255, 0.88);
+    font-size: 1.1rem;
+    line-height: 1.7;
+  }
+  .nf__actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.9rem;
+  }
+  .nf__btn {
+    display: inline-block;
+    padding: 0.9rem 2rem;
+    background: var(--red);
+    color: #fff;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    border: 2px solid var(--red);
+    transition: background 0.2s, border-color 0.2s, color 0.2s;
+  }
+  .nf__btn:hover {
+    background: var(--red-dark);
+    border-color: var(--red-dark);
+  }
+  .nf__btn--ghost {
+    background: transparent;
+    border-color: #fff;
+  }
+  .nf__btn--ghost:hover {
+    background: #fff;
+    border-color: #fff;
+    color: var(--ink);
+  }
+</style>

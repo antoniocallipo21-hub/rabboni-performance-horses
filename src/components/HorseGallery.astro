@@ -1,0 +1,270 @@
+---
+import { useTranslations, type Lang } from '../i18n/ui';
+
+interface Props {
+  images: string[];
+  name: string;
+  lang: Lang;
+}
+
+const { images, name, lang } = Astro.props;
+const t = useTranslations(lang);
+---
+
+{
+  images.length > 0 && (
+    <section class="hgallery">
+      <div class="hgrid-wrap">
+        {images.length > 1 && (
+          <button type="button" class="hgrid__nav hgrid__nav--prev" aria-label={t('gallery.prev')}>‹</button>
+        )}
+        <div class="hgrid">
+          {images.map((src, i) => (
+            <button
+              type="button"
+              class="htile reveal"
+              style={`--reveal-delay: ${(i % 3) * 150}ms`}
+              data-full={src}
+              aria-label={`${t('gallery.open')}: ${name}`}
+            >
+              <img src={src} alt={`${name} — ${i + 1}`} loading="lazy" />
+            </button>
+          ))}
+        </div>
+        {images.length > 1 && (
+          <button type="button" class="hgrid__nav hgrid__nav--next" aria-label={t('gallery.next')}>›</button>
+        )}
+      </div>
+    </section>
+  )
+}
+
+<dialog class="hlightbox" aria-label={name}>
+  <button type="button" class="hlightbox__btn hlightbox__close" aria-label={t('gallery.close')}>×</button>
+  <button type="button" class="hlightbox__btn hlightbox__prev" aria-label={t('gallery.prev')}>‹</button>
+  <button type="button" class="hlightbox__btn hlightbox__next" aria-label={t('gallery.next')}>›</button>
+  <img class="hlightbox__img" alt="" />
+</dialog>
+
+<script>
+  const section = document.querySelector<HTMLElement>('.hgallery');
+  const dialog = document.querySelector<HTMLDialogElement>('.hlightbox');
+  if (section && dialog) {
+    const tiles = Array.from(section.querySelectorAll<HTMLButtonElement>('.htile'));
+    const img = dialog.querySelector<HTMLImageElement>('.hlightbox__img')!;
+    let index = 0;
+
+    const show = (i: number) => {
+      index = (i + tiles.length) % tiles.length;
+      img.src = tiles[index].dataset.full ?? '';
+    };
+    tiles.forEach((tile, i) =>
+      tile.addEventListener('click', () => {
+        show(i);
+        dialog.showModal();
+        document.documentElement.style.overflow = 'hidden';
+      }),
+    );
+
+    dialog.querySelector('.hlightbox__close')!.addEventListener('click', () => dialog.close());
+    dialog.querySelector('.hlightbox__prev')!.addEventListener('click', () => show(index - 1));
+    dialog.querySelector('.hlightbox__next')!.addEventListener('click', () => show(index + 1));
+    dialog.addEventListener('close', () => {
+      document.documentElement.style.overflow = '';
+    });
+    dialog.addEventListener('click', (e) => {
+      if (e.target === dialog) dialog.close();
+    });
+    dialog.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowLeft') show(index - 1);
+      if (e.key === 'ArrowRight') show(index + 1);
+    });
+    let startX = 0;
+    dialog.addEventListener('touchstart', (e) => (startX = e.touches[0].clientX), { passive: true });
+    dialog.addEventListener('touchend', (e) => {
+      const dx = e.changedTouches[0].clientX - startX;
+      if (Math.abs(dx) > 50) show(index + (dx < 0 ? 1 : -1));
+    });
+  }
+
+  // Frecce per scorrere la striscia di foto di una in una
+  const grid = document.querySelector<HTMLElement>('.hgrid');
+  const prevBtn = document.querySelector<HTMLButtonElement>('.hgrid__nav--prev');
+  const nextBtn = document.querySelector<HTMLButtonElement>('.hgrid__nav--next');
+  if (grid) {
+    // Il mouse wheel verticale non deve restare "intrappolato" nella striscia orizzontale:
+    // se il gesto è a intento verticale, lo passiamo alla pagina invece di scorrere la galleria.
+    grid.addEventListener(
+      'wheel',
+      (e) => {
+        if (Math.abs(e.deltaY) > Math.abs(e.deltaX)) {
+          e.preventDefault();
+          window.scrollBy({ top: e.deltaY, left: 0 });
+        }
+      },
+      { passive: false },
+    );
+  }
+  if (grid && prevBtn && nextBtn) {
+    const step = () => (grid.querySelector('.htile') as HTMLElement | null)?.offsetWidth ?? grid.clientWidth * 0.8;
+    const gap = () => parseFloat(getComputedStyle(grid).columnGap || '0');
+    prevBtn.addEventListener('click', () => grid.scrollBy({ left: -(step() + gap()), behavior: 'smooth' }));
+    nextBtn.addEventListener('click', () => grid.scrollBy({ left: step() + gap(), behavior: 'smooth' }));
+
+    const updateNav = () => {
+      const max = grid.scrollWidth - grid.clientWidth - 1;
+      prevBtn.disabled = grid.scrollLeft <= 0;
+      nextBtn.disabled = grid.scrollLeft >= max;
+    };
+    updateNav();
+    grid.addEventListener('scroll', updateNav, { passive: true });
+    window.addEventListener('resize', updateNav);
+  }
+</script>
+
+<style>
+  .hgallery {
+    padding-top: clamp(4.5rem, 10vw, 7.5rem);
+    padding-bottom: clamp(2.5rem, 6vw, 4rem);
+  }
+  .hgrid-wrap {
+    position: relative;
+    width: 94vw;
+    margin-left: 50%;
+    translate: -50% 0;
+  }
+  .hgrid {
+    display: flex;
+    gap: 1.25rem;
+    overflow-x: auto;
+    overflow-y: hidden;
+    overscroll-behavior-y: contain;
+    touch-action: pan-x;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    padding-inline: clamp(1.5rem, 5vw, 4rem);
+  }
+  .hgrid::-webkit-scrollbar {
+    display: none;
+  }
+  .hgrid__nav {
+    position: absolute;
+    top: 50%;
+    z-index: 2;
+    display: grid;
+    place-items: center;
+    width: 52px;
+    height: 52px;
+    border: 1px solid #e6e2dc;
+    border-radius: 50%;
+    background: #fff;
+    color: var(--ink);
+    font-size: 1.5rem;
+    line-height: 1;
+    cursor: pointer;
+    box-shadow: 0 10px 26px rgba(0, 0, 0, 0.14);
+    transition: opacity 0.2s, color 0.2s;
+    translate: 0 -50%;
+  }
+  .hgrid__nav--prev {
+    left: 0.75rem;
+  }
+  .hgrid__nav--next {
+    right: 0.75rem;
+  }
+  .hgrid__nav:disabled {
+    opacity: 0;
+    pointer-events: none;
+  }
+  .hgrid__nav:hover {
+    color: var(--red);
+  }
+  @media (max-width: 640px) {
+    .hgrid__nav {
+      display: none;
+    }
+  }
+  .htile {
+    display: block;
+    flex: 0 0 auto;
+    width: min(400px, 80vw);
+    scroll-snap-align: start;
+    padding: 0;
+    border: 0;
+    border-radius: 14px;
+    overflow: hidden;
+    background: var(--sand);
+    cursor: zoom-in;
+  }
+  .htile img {
+    display: block;
+    width: 100%;
+    aspect-ratio: 4 / 3;
+    object-fit: cover;
+    transition: transform 0.8s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  .htile:hover img {
+    transform: scale(1.05);
+  }
+
+  .hlightbox {
+    width: 100vw;
+    max-width: none;
+    height: 100vh;
+    height: 100dvh;
+    max-height: none;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    background: rgba(12, 8, 8, 0.94);
+  }
+  .hlightbox::backdrop {
+    background: rgba(12, 8, 8, 0.94);
+  }
+  .hlightbox[open] {
+    display: grid;
+    place-items: center;
+  }
+  .hlightbox__img {
+    display: block;
+    max-width: min(92vw, 1400px);
+    max-height: 86vh;
+    max-height: 86dvh;
+    width: auto;
+    height: auto;
+    object-fit: contain;
+  }
+  .hlightbox__btn {
+    position: absolute;
+    display: grid;
+    place-items: center;
+    width: 52px;
+    height: 52px;
+    border: 0;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.1);
+    color: #fff;
+    font-size: 2rem;
+    line-height: 1;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+  .hlightbox__btn:hover {
+    background: var(--red);
+  }
+  .hlightbox__close {
+    top: 1rem;
+    right: 1rem;
+  }
+  .hlightbox__prev {
+    left: 1rem;
+    top: 50%;
+    translate: 0 -50%;
+  }
+  .hlightbox__next {
+    right: 1rem;
+    top: 50%;
+    translate: 0 -50%;
+  }
+</style>

@@ -1,0 +1,112 @@
+---
+import { Image } from 'astro:assets';
+import defaultPhoto from '../assets/hero.jpg';
+
+interface Props {
+  eyebrow: string;
+  title: string;
+  text: string;
+  cta?: string;
+  href?: string;
+  image?: ImageMetadata;
+  alt?: string;
+  /** Riquadro verticale 4:5, per foto in piedi */
+  portrait?: boolean;
+  reverse?: boolean;
+  imagePosition?: string;
+}
+
+const { eyebrow, title, text, cta, href, image = defaultPhoto, alt = '', portrait = false, reverse = false, imagePosition = '50% 50%' } = Astro.props;
+---
+
+<section class:list={['split', { 'split--reverse': reverse, 'split--portrait': portrait }]}>
+  <div class="container split__grid">
+    <div class:list={['split__media', 'reveal', reverse ? 'reveal--right' : 'reveal--left']}>
+      <Image
+        src={image}
+        alt={alt}
+        class="split__img"
+        style={`object-position: ${imagePosition}`}
+        widths={[600, 1200]}
+        sizes="(min-width: 900px) 50vw, 100vw"
+      />
+    </div>
+    <div class="split__body">
+      <p class="split__eyebrow reveal" style="--reveal-delay: 250ms">{eyebrow}</p>
+      <h2 class="split__title reveal" style="--reveal-delay: 450ms">{title}</h2>
+      <p class="split__text reveal" style="--reveal-delay: 650ms">{text}</p>
+      {
+        cta && href && (
+          <div class="reveal" style="--reveal-delay: 850ms">
+            <a class="split__cta" href={href}>{cta}</a>
+          </div>
+        )
+      }
+    </div>
+  </div>
+</section>
+
+<style>
+  .split {
+    padding-block: clamp(3rem, 8vw, 6rem);
+  }
+  .split__grid {
+    display: grid;
+    gap: clamp(1.5rem, 5vw, 4rem);
+    align-items: center;
+  }
+  .split__img {
+    width: 100%;
+    height: auto;
+    aspect-ratio: 4 / 3;
+    object-fit: cover;
+  }
+  .split--portrait .split__img {
+    aspect-ratio: 4 / 5;
+    max-height: 640px;
+  }
+  .split__eyebrow {
+    margin: 0 0 0.75rem;
+    color: var(--red);
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    font-size: 0.8rem;
+    font-weight: 600;
+  }
+  .split__title {
+    margin: 0 0 1.25rem;
+    font-family: var(--font-display);
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+    font-weight: 500;
+    font-size: clamp(1.9rem, 4vw, 3rem);
+    line-height: 1.15;
+  }
+  .split__text {
+    margin: 0 0 2rem;
+    color: var(--gray);
+    font-size: 1.05rem;
+  }
+  .split__cta {
+    display: inline-block;
+    padding: 0.85rem 1.75rem;
+    border: 2px solid var(--red);
+    color: var(--red);
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    transition: background 0.2s, color 0.2s;
+  }
+  .split__cta:hover {
+    background: var(--red);
+    color: #fff;
+  }
+
+  @media (min-width: 900px) {
+    .split__grid {
+      grid-template-columns: 1fr 1fr;
+    }
+    .split--reverse .split__media {
+      order: 2;
+    }
+  }
+</style>
