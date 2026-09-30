@@ -1,0 +1,201 @@
+# Config di Decap CMS per Rabboni Performance Horses.
+#
+# La sezione "backend" qui sotto è un segnaposto: dopo aver creato il sito su
+# DecapBridge (decapbridge.com) e collegato questo repository, sostituiscila
+# con lo snippet esatto che DecapBridge genera per questo sito.
+backend:
+  name: github
+  repo: antoniocallipo21-hub/rabboni-performance-horses
+  branch: main
+  base_url: https://api.decapbridge.com
+  auth_endpoint: auth
+
+# Le foto caricate dal CMS vanno in public/uploads e sono servite da /uploads/...
+media_folder: "public/uploads"
+public_folder: "/uploads"
+
+# Le collezioni sono organizzate in sottocartelle it/ ed en/: stesso nome file = stesso contenuto,
+# tradotto nelle due lingue. Decap gestisce le due versioni fianco a fianco nello stesso editor.
+i18n:
+  structure: multiple_folders
+  locales: [it, en]
+  default_locale: it
+
+collections:
+  - name: news
+    label: News
+    folder: src/content/news
+    i18n: true
+    create: true
+    slug: "{{slug}}"
+    fields:
+      - { label: Titolo, name: title, widget: string, i18n: true }
+      - { label: Data, name: date, widget: datetime }
+      - label: Categoria
+        name: category
+        widget: select
+        options: [gare, allevamento, eventi]
+      - { label: Estratto, name: excerpt, widget: text, i18n: true }
+      - { label: Foto di copertina, name: cover, widget: image }
+      - { label: Testo alternativo foto, name: coverAlt, widget: string, required: false, i18n: true }
+      - { label: Testo, name: body, widget: markdown, i18n: true, required: false }
+
+  - name: horses
+    label: Cavalli
+    folder: src/content/horses
+    i18n: true
+    create: true
+    slug: "{{slug}}"
+    fields:
+      - { label: Nome, name: name, widget: string }
+      - label: Categoria
+        name: category
+        widget: select
+        options: [broodmares, show-horses, three-years-old, two-years-old, yearlings, weanlings]
+      - { label: Razza, name: breed, widget: string, required: false }
+      - { label: Anno di nascita, name: year, widget: number, value_type: int, required: false }
+      - label: Sesso
+        name: sex
+        widget: select
+        options: [stallion, mare, colt, filly, gelding]
+        required: false
+      - { label: Colore, name: color, widget: string, required: false }
+      - { label: Estratto, name: excerpt, widget: text, i18n: true }
+      - { label: Foto di copertina, name: cover, widget: image }
+      - { label: Testo alternativo foto, name: coverAlt, widget: string, required: false, i18n: true }
+      - { label: Galleria, name: gallery, widget: list, field: { label: Foto, name: image, widget: image }, required: false }
+      - { label: Padre, name: sire, widget: string, required: false }
+      - { label: Madre, name: dam, widget: string, required: false }
+      - { label: "Nonno paterno (padre del padre)", name: sireSire, widget: string, required: false }
+      - { label: "Nonna paterna (madre del padre)", name: sireDam, widget: string, required: false }
+      - { label: "Nonno materno (padre della madre)", name: damSire, widget: string, required: false }
+      - { label: "Nonna materna (madre della madre)", name: damDam, widget: string, required: false }
+      - { label: Bisnonno (sireSireSire), name: sireSireSire, widget: string, required: false }
+      - { label: Bisnonna (sireSireDam), name: sireSireDam, widget: string, required: false }
+      - { label: Bisnonno (sireDamSire), name: sireDamSire, widget: string, required: false }
+      - { label: Bisnonna (sireDamDam), name: sireDamDam, widget: string, required: false }
+      - { label: Bisnonno (damSireSire), name: damSireSire, widget: string, required: false }
+      - { label: Bisnonna (damSireDam), name: damSireDam, widget: string, required: false }
+      - { label: Bisnonno (damDamSire), name: damDamSire, widget: string, required: false }
+      - { label: Bisnonna (damDamDam), name: damDamDam, widget: string, required: false }
+
+  - name: stallions
+    label: Stalloni
+    folder: src/content/stallions
+    i18n: true
+    create: true
+    slug: "{{slug}}"
+    fields:
+      - { label: Nome, name: name, widget: string }
+      - { label: Soprannome, name: nickname, widget: string, required: false, i18n: true }
+      - { label: Anno di nascita, name: year, widget: number, value_type: int, required: false }
+      - { label: Anno di morte, name: deathYear, widget: number, value_type: int, required: false }
+      - { label: Colore, name: color, widget: string, required: false }
+      - { label: Razza / Registro, name: registry, widget: string, required: false }
+      - { label: Altezza, name: height, widget: string, required: false, i18n: true }
+      - { label: Proprietario, name: owner, widget: string, required: false }
+      - { label: Residenza, name: location, widget: string, required: false }
+      - { label: Vincite (testo libero), name: earnings, widget: string, required: false, i18n: true }
+      - { label: "LTE (cifra breve per la card)", name: lte, widget: string, required: false }
+      - { label: Titoli vinti, name: titles, widget: list, required: false, i18n: true }
+      - label: Stato
+        name: status
+        widget: select
+        options: [standing, deceased, retired]
+        required: false
+      - { label: "Titolo (non più mostrato in pagina)", name: headline, widget: string, required: false }
+      - { label: Biografia del padre, name: sireBio, widget: text, required: false, i18n: true }
+      - { label: Biografia della madre, name: damBio, widget: text, required: false, i18n: true }
+      - label: "Test genetici (non più mostrati in pagina)"
+        name: geneticTests
+        widget: list
+        required: false
+        fields:
+          - { label: Nome, name: name, widget: string }
+          - { label: Risultato, name: result, widget: string }
+      - { label: Tassa di monta, name: fee, widget: string, required: false, i18n: true }
+      - { label: Tipo di seme, name: semenType, widget: string, required: false }
+      - { label: "Stato genetico (es. 6 Panel Negative)", name: geneticStatus, widget: string, required: false }
+      - { label: Disponibilità del seme, name: semenAvailability, widget: string, required: false, i18n: true }
+      - label: Centri di fecondazione
+        name: breedingLinks
+        widget: list
+        required: false
+        fields:
+          - { label: Nome, name: label, widget: string }
+          - { label: Indirizzo, name: url, widget: string }
+      - { label: Puledri ammessi a, name: foalsEligible, widget: string, required: false, i18n: true }
+      - { label: "Nota di monta (non più mostrata in pagina)", name: breedingNote, widget: string, required: false, i18n: true }
+      - { label: Video (YouTube, nascosto: il video va in galleria), name: video, widget: string, required: false }
+      - { label: Vincite dei figli, name: offspringEarnings, widget: string, required: false }
+      - label: Esempio di figlio
+        name: offspringExample
+        widget: object
+        required: false
+        fields:
+          - { label: Nome, name: name, widget: string }
+          - { label: LTE, name: lte, widget: string, required: false }
+          - { label: Nota, name: note, widget: string, i18n: true }
+      - { label: Estratto, name: excerpt, widget: text, i18n: true }
+      - { label: Foto di copertina (hero), name: cover, widget: image }
+      - { label: Testo alternativo foto copertina, name: coverAlt, widget: string, required: false, i18n: true }
+      - { label: "Foto per la card (verticale)", name: cardCover, widget: image, required: false }
+      - { label: Testo alternativo foto card, name: cardCoverAlt, widget: string, required: false, i18n: true }
+      - { label: Logo dello stallone, name: logo, widget: image, required: false }
+      - { label: Testo alternativo logo, name: logoAlt, widget: string, required: false, i18n: true }
+      - { label: Galleria, name: gallery, widget: list, field: { label: Foto, name: image, widget: image }, required: false }
+      - { label: Padre, name: sire, widget: string, required: false }
+      - { label: Madre, name: dam, widget: string, required: false }
+      - { label: "Nonno paterno (padre del padre)", name: sireSire, widget: string, required: false }
+      - { label: "Nonna paterna (madre del padre)", name: sireDam, widget: string, required: false }
+      - { label: "Nonno materno (padre della madre)", name: damSire, widget: string, required: false }
+      - { label: "Nonna materna (madre della madre)", name: damDam, widget: string, required: false }
+      - { label: Bisnonno (sireSireSire), name: sireSireSire, widget: string, required: false }
+      - { label: Bisnonna (sireSireDam), name: sireSireDam, widget: string, required: false }
+      - { label: Bisnonno (sireDamSire), name: sireDamSire, widget: string, required: false }
+      - { label: Bisnonna (sireDamDam), name: sireDamDam, widget: string, required: false }
+      - { label: Bisnonno (damSireSire), name: damSireSire, widget: string, required: false }
+      - { label: Bisnonna (damSireDam), name: damSireDam, widget: string, required: false }
+      - { label: Bisnonno (damDamSire), name: damDamSire, widget: string, required: false }
+      - { label: Bisnonna (damDamDam), name: damDamDam, widget: string, required: false }
+
+  - name: whm
+    label: Western Horse Market
+    folder: src/content/whm
+    i18n: true
+    create: true
+    slug: "{{slug}}"
+    fields:
+      - { label: Nome, name: name, widget: string }
+      - { label: Anno di nascita, name: year, widget: number, value_type: int, required: false }
+      - label: Sesso
+        name: sex
+        widget: select
+        options: [stallion, mare, colt, filly, gelding]
+        required: false
+      - { label: Razza, name: breed, widget: string, required: false }
+      - { label: Colore, name: color, widget: string, required: false }
+      - { label: Altezza, name: height, widget: string, required: false, i18n: true }
+      - { label: "Prezzo (vuoto = \"prezzo su richiesta\")", name: price, widget: string, required: false, i18n: true }
+      - { label: Venditore, name: seller, widget: string, required: false }
+      - { label: Telefono venditore, name: sellerPhone, widget: string, required: false }
+      - { label: Email venditore, name: sellerEmail, widget: string, required: false }
+      - { label: Descrizione, name: excerpt, widget: text, i18n: true }
+      - { label: Foto di copertina, name: cover, widget: image }
+      - { label: Testo alternativo foto, name: coverAlt, widget: string, required: false, i18n: true }
+      - { label: Galleria, name: gallery, widget: list, field: { label: Foto, name: image, widget: image }, required: false }
+      - { label: Video (YouTube, nascosto), name: video, widget: string, required: false }
+      - { label: Padre, name: sire, widget: string, required: false }
+      - { label: Madre, name: dam, widget: string, required: false }
+      - { label: "Nonno paterno (padre del padre)", name: sireSire, widget: string, required: false }
+      - { label: "Nonna paterna (madre del padre)", name: sireDam, widget: string, required: false }
+      - { label: "Nonno materno (padre della madre)", name: damSire, widget: string, required: false }
+      - { label: "Nonna materna (madre della madre)", name: damDam, widget: string, required: false }
+      - { label: Bisnonno (sireSireSire), name: sireSireSire, widget: string, required: false }
+      - { label: Bisnonna (sireSireDam), name: sireSireDam, widget: string, required: false }
+      - { label: Bisnonno (sireDamSire), name: sireDamSire, widget: string, required: false }
+      - { label: Bisnonna (sireDamDam), name: sireDamDam, widget: string, required: false }
+      - { label: Bisnonno (damSireSire), name: damSireSire, widget: string, required: false }
+      - { label: Bisnonna (damSireDam), name: damSireDam, widget: string, required: false }
+      - { label: Bisnonno (damDamSire), name: damDamSire, widget: string, required: false }
+      - { label: Bisnonna (damDamDam), name: damDamDam, widget: string, required: false }
