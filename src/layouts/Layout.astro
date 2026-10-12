@@ -1,5 +1,6 @@
 ---
 import '../styles/global.css';
+import Analytics from '@vercel/analytics/astro';
 import logo from '../assets/logo.svg';
 import logoR from '../assets/logo-r.svg';
 import Social from '../components/Social.astro';
@@ -232,6 +233,7 @@ const nav: NavItem[] = [
         </script>
       )
     }
+    <Analytics />
   </body>
 </html>
 
