@@ -61,22 +61,24 @@ const rows3 = rows(gen3);
   hasPedigree && (
     <section class="pedigree">
       <div class="container">
-        <div class="tree">
-          {gen1.map((b, i) => (
-            <div class="box box--gen1" style={`grid-row: ${rows1[i]}; grid-column: 1;`}>
-              <span>{b.name || '—'}</span>
-            </div>
-          ))}
-          {gen2.map((b, i) => (
-            <div class="box box--gen2" style={`grid-row: ${rows2[i]}; grid-column: 2;`}>
-              <span>{b.name || '—'}</span>
-            </div>
-          ))}
-          {gen3.map((b, i) => (
-            <div class="box box--gen3" style={`grid-row: ${rows3[i]}; grid-column: 3;`}>
-              <span>{b.name || '—'}</span>
-            </div>
-          ))}
+        <div class="tree-scroll">
+          <div class="tree">
+            {gen1.map((b, i) => (
+              <div class="box box--gen1" style={`grid-row: ${rows1[i]}; grid-column: 1;`}>
+                <span>{b.name || '—'}</span>
+              </div>
+            ))}
+            {gen2.map((b, i) => (
+              <div class="box box--gen2" style={`grid-row: ${rows2[i]}; grid-column: 2;`}>
+                <span>{b.name || '—'}</span>
+              </div>
+            ))}
+            {gen3.map((b, i) => (
+              <div class="box box--gen3" style={`grid-row: ${rows3[i]}; grid-column: 3;`}>
+                <span>{b.name || '—'}</span>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
     </section>
@@ -87,6 +89,14 @@ const rows3 = rows(gen3);
   .pedigree {
     padding-block: clamp(3rem, 8vw, 6rem);
     background: var(--sand);
+  }
+  .tree-scroll {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+  .tree-scroll::-webkit-scrollbar {
+    display: none;
   }
   .tree {
     display: grid;
@@ -110,17 +120,12 @@ const rows3 = rows(gen3);
     font-size: 0.82rem;
     color: var(--gray);
   }
+  /* Un pedigree si legge sempre in colonne genitori → nonni → bisnonni: sotto i 720px
+     resta a 3 colonne ma scorre in orizzontale invece di impilarsi in verticale. */
   @media (max-width: 720px) {
     .tree {
-      grid-template-columns: 1fr;
+      min-width: 640px;
       gap: 0.4rem;
-    }
-    .box,
-    .box--gen1,
-    .box--gen2,
-    .box--gen3 {
-      grid-column: 1 !important;
-      grid-row: auto !important;
     }
   }
 </style>
